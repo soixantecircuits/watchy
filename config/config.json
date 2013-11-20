@@ -1,0 +1,14 @@
+{
+  "watch":{
+      "path":"/Users/gabrielstuff/Documents",
+      "destination":"/Users/gabrielstuff/Sources/node/nodewebkit/OscClient/app/"
+  },
+  "osc":{
+      "address":"127.0.0.1",
+      "port":9999
+  },
+  "socketIO":{
+      "port":8010
+  } 
+    
+}
