@@ -1,7 +1,6 @@
 {
   "watch":{
-      "path":"/Users/gabrielstuff/Documents",
-      "destination":"/Users/gabrielstuff/Sources/node/nodewebkit/OscClient/app/"
+      "path":"/Users/gabrielstuff/Documents/images/"
   },
   "osc":{
       "address":"127.0.0.1",

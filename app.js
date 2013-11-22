@@ -26,8 +26,9 @@ var watch = require('watch')
             var fs = require('fs');
             var destination = config.watch.destination+path.split("/").pop();
 
-            fs.createReadStream(path).pipe(fs.createWriteStream(destination));
-            socket.emit('new-image', { src: destination.split("/").pop() });
+            //fs.createReadStream(path).pipe(fs.createWriteStream(destination));
+            //socket.emit('new-image', { src: destination.split("/").pop() });
+            socket.emit('new-image', { src: path });
           });
           OSCclient.send('/new-image', path);
         }catch(err){
