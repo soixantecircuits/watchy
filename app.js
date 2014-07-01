@@ -50,3 +50,7 @@ var watch = require('watch')
   })
 
 console.log("...Initialized");
+
+process.on('uncaughtException', function(err) {
+  console.log(err);
+});
