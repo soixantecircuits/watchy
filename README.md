@@ -13,6 +13,9 @@ $ git clone git@github.com:soixantecircuits/watchy.git
 $ cd watchy && npm install
 ```
 
+> Note:
+> You'll need to write manually the path to the folder you want to watch in the `config/config.json` file.
+
 ## Example Usage
 
 ``` bash
