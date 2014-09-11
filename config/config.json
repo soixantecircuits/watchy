@@ -1,10 +1,10 @@
 {
   "watch":{
-      "path":"/Users/gabrielstuff/Documents/images/"
+      "path":"/home/mina/sources/python/pyying/snaps"
   },
   "osc":{
       "address":"127.0.0.1",
-      "port":9999
+      "port":8080
   },
   "socketIO":{
       "port":8010
