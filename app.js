@@ -1,6 +1,7 @@
 var config = require('./config/config.json'),
     watch = require('watch');
-    io = require('socket.io-client')('http://caribou.local:8011');
+    // io = require('//caribou.local:8011/socket.io/socket.io.js').('caribou.local:8011');
+    io = require('socket.io-client');
 
 var pathes = config.watch.path;
 var prevPath;
@@ -20,21 +21,21 @@ console.log("Initializing...");
 var screen1 = io.connect('http://caribou.local:8011/screen1');
 var screen2 = io.connect('http://caribou.local:8011/screen2');
 
-screen1.on('connection', function (socket) {
-    watchyDoTheWatch(config.path.screen1, screen1);
+screen1.on('connect', function (socket) {
+    watchyDoTheWatch(config.watch.path.screen1, screen1);
 });
-screen2.on('connection', function (socket) {
-    watchyDoTheWatch(config.path.screen2, screen2);
+screen2.on('connect', function (socket) {
+    watchyDoTheWatch(config.watch.path.screen2, screen2);
 });
 
-function watchyDoTheWatch(rootpath, socket, namespace){
+function watchyDoTheWatch(rootpath, namespace){
     watch.createMonitor(rootpath, function (monitor) {
         monitor.on("created", function (path, stat) {
             if (/^[^\.].*$/.test(path.split("/").pop()) && path !== prevPath) {
                 console.log("created, ",path);
                 prevPath = path;
                 try {
-                    namespace.broadcast.emit('new-image', { src: path });
+                    namespace.emit('new-image', { src: path });
                     console.log('"new-image" message sent with path: ', path);
                 }catch(err){
                   console.log(err)
