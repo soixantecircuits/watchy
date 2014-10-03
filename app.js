@@ -1,6 +1,6 @@
 var config = require('./config/config.json'),
-    watch = require('watch'),
-    io = require('socket.io-client')('http://localhost:8010');
+    watch = require('watch');
+    io = require('socket.io-client')('http://caribou.local:8011');
 
 var pathes = config.watch.path;
 var prevPath;
@@ -17,8 +17,8 @@ console.log("Initializing...");
 //     // }
 // });
 
-var screen1 = io.connect('http://localhost:8010/screen1');
-var screen2 = io.connect('http://localhost:8010/screen2');
+var screen1 = io.connect('http://caribou.local:8011/screen1');
+var screen2 = io.connect('http://caribou.local:8011/screen2');
 
 screen1.on('connection', function (socket) {
     watchyDoTheWatch(config.path.screen1, screen1);
