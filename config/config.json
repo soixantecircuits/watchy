@@ -1,6 +1,9 @@
 {
   "watch":{
-      "path":"/home/mina/sources/python/pyying/snaps"
+      "path": {
+          "screen1": "/home/hugo/sources/python/pyying/snaps",
+          "screen2": "/home/hugo/sources/nodewebkit/photobooth-boilerplate/snaps"
+        }
   },
   "osc":{
       "address":"127.0.0.1",
@@ -8,6 +11,6 @@
   },
   "socketIO":{
       "port":8010
-  } 
-    
+  }
+
 }
