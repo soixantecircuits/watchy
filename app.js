@@ -21,10 +21,14 @@ var screen1 = io.connect('http://caribou.local:8011/screen1');
 var screen2 = io.connect('http://caribou.local:8011/screen2');
 
 screen1.on('connect', function (socket) {
-    watchyDoTheWatch(config.watch.path.screen1, screen1);
+    if(config.watch.path.screen1){
+        watchyDoTheWatch(config.watch.path.screen1, screen1);
+    }
 });
 screen2.on('connect', function (socket) {
-    watchyDoTheWatch(config.watch.path.screen2, screen2);
+    if(config.watch.path.screen2){
+        watchyDoTheWatch(config.watch.path.screen2, screen2);
+    }
 });
 
 function watchyDoTheWatch(rootpath, namespace){
