@@ -1,6 +1,6 @@
 # filewatcher
 
-A basic app that can watch and send modification over OSC and Socket.IO
+A basic app that can watch and send modification over Socket.IO
 
 
 

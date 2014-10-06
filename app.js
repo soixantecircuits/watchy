@@ -1,7 +1,6 @@
 var config = require('./config/config.json'),
-    watch = require('watch');
-    // io = require('//caribou.local:8011/socket.io/socket.io.js').('caribou.local:8011');
-    io = require('socket.io-client');
+    watch = require('watch'),
+    io = require('socket.io-client')(config.socket.address);
 
 var pathes = config.watch.path;
 var prevPath;
@@ -56,7 +55,3 @@ function watchyDoTheWatch(rootpath, namespace){
 }
 
 console.log("...Initialized");
-
-process.on('uncaughtException', function(err) {
-  console.log(err);
-});

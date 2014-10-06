@@ -21,7 +21,7 @@
     "url": "https://github.com/soixantecircuits/watchy/issues"
   },
   "dependencies": {
-    "socket.io-client": "^0.9.17",
+    "socket.io-client": "^1.1.0",
     "watch": "~0.8.0"
   },
   "devDependencies": {
