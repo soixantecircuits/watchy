@@ -1,31 +1,21 @@
 var config = require('./config/config.json'),
     watch = require('watch'),
-    io = require('socket.io-client')(config.socket.address);
+    io = require('socket.io-client');
 
 var pathes = config.watch.path;
 var prevPath;
 
 console.log("Initializing...");
 
-// var socket = io.on('connection', function (socket) {
-//     // if(pathes instanceof Array){
-//     //     for (var i = pathes.length - 1; i >= 0; i--) {
-//     //         watchyDoTheWatch(pathes[i], socket);
-//     //     };
-//     // } else {
-//     //     watchyDoTheWatch(pathes, socket);
-//     // }
-// });
+var screen1 = io.connect(config.socket.address + '/screen1');
+var screen2 = io.connect(config.socket.address + '/screen2');
 
-var screen1 = io.connect('http://' + config.socket.address + '/screen1');
-var screen2 = io.connect('http://' + config.socket.address + '/screen2');
-
-screen1.on('connect', function (socket) {
+screen1.on('connect', function () {
     if(config.watch.path.screen1){
         watchyDoTheWatch(config.watch.path.screen1, screen1);
     }
 });
-screen2.on('connect', function (socket) {
+screen2.on('connect', function () {
     if(config.watch.path.screen2){
         watchyDoTheWatch(config.watch.path.screen2, screen2);
     }
