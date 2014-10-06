@@ -6,6 +6,6 @@
         }
   },
   "socket": {
-      "address": "http://localhost:80",
+      "address": "http://localhost:80"
   }
 }
