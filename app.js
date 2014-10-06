@@ -17,8 +17,8 @@ console.log("Initializing...");
 //     // }
 // });
 
-var screen1 = io.connect('http://caribou.local:8011/screen1');
-var screen2 = io.connect('http://caribou.local:8011/screen2');
+var screen1 = io.connect('http://' + config.socket.address + '/screen1');
+var screen2 = io.connect('http://' + config.socket.address + '/screen2');
 
 screen1.on('connect', function (socket) {
     if(config.watch.path.screen1){
