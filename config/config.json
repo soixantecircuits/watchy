@@ -1,6 +1,6 @@
 {
   "watch":{
-      "path":"/home/mina/sources/python/pyying/snaps"
+      "path":"/Users/gabrielstuff/Pictures/Eye-Fi/11-09-2014"
   },
   "osc":{
       "address":"127.0.0.1",
@@ -8,6 +8,7 @@
   },
   "socketIO":{
       "port":8010
-  } 
-    
+  },
+  "transport":"osc",
+  "debug":true
 }

@@ -4,7 +4,8 @@
   "description": "A basic app that can watch and send modification over OSC and Socket.IO",
   "main": "index.js",
   "scripts": {
-    "test": "node_modules/.bin/grunt ci"
+    "test": "node_modules/.bin/grunt ci",
+    "start": "node app.js"
   },
   "repository": {
     "type": "git",
@@ -17,7 +18,7 @@
     "url": "https://github.com/soixantecircuits/watchy/issues"
   },
   "dependencies": {
-    "watch":"~0.8.0",
+    "watch":"~0.11.0",
     "socket.io":"~0.9",
     "lodash":"~2.3.0",
     "node-osc":"~0.2.1"
