@@ -6,6 +6,7 @@
       "address":"127.0.0.1",
       "port":8080
   },
+  "state":"client",
   "port":8010,
   "transport":"socket.io",
   "debug":true

@@ -7,8 +7,14 @@ var config = require('./config/config.json'),
   app;
 
 var initTransporter = function() {
-  if (config.transport === 'socket.io' || config.transport === 'both') {
+  if ((config.transport === 'socket.io' || config.transport === 'both') && config.state == 'server') {
+    console.log('Init socket.io server mode...');
     var io = require('socket.io')(app);
+    if (config.state === 'server') {
+      // advertise a http server on port 4321
+      var ad = mdns.createAdvertisement(mdns.tcp('socket-io'), config.port);
+      ad.start();
+    }
     //var io = require('socket.io').listen(config.socketIO.port);
     var socketIO = {
       name: 'socket.io',
@@ -41,6 +47,32 @@ var initTransporter = function() {
     });
     transporter.push(socketIO);
 
+  } else if((config.transport === 'socket.io' || config.transport === 'both') && config.state === 'client') {
+    console.log('Init socket.io client mode...');
+    var socket = require('socket.io-client')('http://localhost:3000');
+    socket.on('connect', function() {
+      console.log('connected to socket.io server');
+    });
+    socket.on('disconnect', function() {
+      console.log('We\'ve been disconnected');
+    });
+    socket.on('error', function(){
+      console.log('error while connecting');
+    });
+
+    var socketIO = {
+      name: 'socket.io-client',
+      sender: socket,
+      send: function(path, action) {
+        if (config.debug == true) {
+            console.log('Sending ' + action + ' using socket.io client');
+        }
+        socket.emit(action, {
+          src: path
+        });
+      }
+    };
+    transporter.push(socketIO);
   }
 
   if (config.transport === 'osc' || config.transport === 'both') {
@@ -71,12 +103,19 @@ var initWatcher = function() {
 
   watcher
     .on('add', function(path) {
-      
-      if(initialScanComplete){
+
+      if (initialScanComplete) {
         try {
           console.log(path);
+          console.log(config.watch.path);
+          var os = require("os");
+          var relativePath = path.replace(config.watch.path, 'http://' + os.hostname() + ":" + config.port);
+
+          console.log(relativePath);
+
           _.each(transporter, function(transporterElement) {
             transporterElement.send(path, '/new-file');
+            transporterElement.send(path, 'image-saved');
             //for legacy purpose we keep new image until june 2015.
             transporterElement.send(path, '/new-image');
           });
@@ -138,8 +177,8 @@ initWatcher();
 console.log("...Initialized");
 
 // Output
-  console.log("Listening on: "+config.port);
-  app.listen(config.port);
+console.log("Listening on: " + config.port);
+app.listen(config.port);
 
 //WHY ?
 process.on('uncaughtException', function(err) {

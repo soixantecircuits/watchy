@@ -24,8 +24,10 @@
   "dependencies": {
     "chokidar": "^0.12.5",
     "lodash": "~2.3.0",
+    "mdns": "^2.2.2",
     "node-osc": "~0.2.1",
     "socket.io": "1.2.1",
+    "socket.io-client": "^1.2.1",
     "statique": "^1.0.2"
   },
   "devDependencies": {
