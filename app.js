@@ -1,60 +1,58 @@
 'use strict';
 
 var config = require('./config/config.json'),
-  watch = require('watch'),
   transporter = [],
-  OSCclient = {},
-  socketConnections = [],
   _ = require('lodash'),
   watch = require('watch');
 
 var initTransporter = function() {
   if (config.transport === 'socket.io' || config.transport === 'both') {
-    io = require('socket.io').listen(config.socketIO.port);
-    io.sockets.on('connection', function(socket) {
+    var io = require('socket.io').listen(config.socketIO.port);
+    var socketIO = {
+      name: 'socket.io',
+      sender: io,
+      socketConnections: [],
+      send: function(path, action) {
+        if (this.socketConnections.length < 0) {
+          console.log('No socket open');
+        } else {
+          if (config.debug == true) {
+            console.log('Sending ' + action + ' using osc');
+          }
+          _.each(this.socketConnections, function(socket) {
+            socket.emit(action, {
+              src: path
+            });
+          });
+        }
+      }
+    };
+    socketIO.sender.sockets.on('connection', function(socket) {
       socket.on('hello', function(data) {
         if (config.debug == true) {
           console.log('Browser connected');
           console.log(data);
         }
       });
-      socketConnections.push(socket);
-      transporter.push({
-        name: 'socket.io',
-        sender: io,
-        send: function(path, action) {
-          if (socketConnections.length < 0) {
-            console.log('No socket open');
-          } else {
-            if (config.debug == true) {
-              console.log('Sending '+action+' using osc');
-            }
-            _.each(socketConnections, function(socket) {
-              socket.emit(action, {
-                src: path
-              });
-            });
-          }
-        }
-      });
+      socketIO.socketConnections.push(socket);
     });
+    transporter.push(socketIO);
   }
-
-
 
   if (config.transport === 'osc' || config.transport === 'both') {
     var osc = require('node-osc'),
-      OSCclient = new osc.Client(config.osc.address, config.osc.port);
-    transporter.push({
+    OSCclient = new osc.Client(config.osc.address, config.osc.port),
+    OSCSender = {
       name: 'osc',
       sender: OSCclient,
       send: function(path, action) {
         if (config.debug == true) {
-          console.log('Sending '+action+' using osc');
+          console.log('Sending ' + action + ' using osc');
         }
-        OSCclient.send(action, path);
+        this.sender.send(action, path);
       }
-    });
+    }
+    transporter.push(OSCSender);
   }
 
 };
@@ -88,12 +86,34 @@ var initWatcher = function() {
   });
 }
 
+var initStatiqueServer = function(){
+  var Statique = require("statique")
+  , Http = require('http')
+  ;
+
+  // Create *Le Statique* server
+  var server = new Statique({
+    root: config.watch.path,
+    cache: 36000
+  });/*.setRoutes({
+    "/": "/html/index.html"
+  });*/
+
+  // Create server
+  Http.createServer(server.serve).listen(8000);
+
+  // Output
+  console.log("Listening on 8000.");
+}
+
 console.log("Initializing...");
 
 initTransporter();
 
 //TODO add some ready event to tell the watcher to init.
 initWatcher();
+
+initStatiqueServer();
 
 console.log("...Initialized");
 //WHY ?
