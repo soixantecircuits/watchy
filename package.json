@@ -22,11 +22,11 @@
     "url": "https://github.com/soixantecircuits/watchy/issues"
   },
   "dependencies": {
+    "chokidar": "^0.12.5",
     "lodash": "~2.3.0",
     "node-osc": "~0.2.1",
     "socket.io": "~0.9",
-    "statique": "^1.0.2",
-    "watch": "~0.11.0"
+    "statique": "^1.0.2"
   },
   "devDependencies": {
     "expect.js": "~0.2.0",
