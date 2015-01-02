@@ -4,6 +4,7 @@ var config = require('./config/config.json'),
   transporter = [],
   _ = require('lodash'),
   initialScanComplete = false,
+  mdns = require('mdns'),
   app;
 
 var initTransporter = function() {
@@ -48,8 +49,39 @@ var initTransporter = function() {
     transporter.push(socketIO);
 
   } else if((config.transport === 'socket.io' || config.transport === 'both') && config.state === 'client') {
-    console.log('Init socket.io client mode...');
-    var socket = require('socket.io-client')('http://localhost:3000');
+    initSocketIOClient(config.client.address, config.client.port);
+    // watch all http servers
+    var panini = mdns.createBrowser(mdns.tcp('websocket'));
+    panini.on('serviceUp', function(service) {
+      console.log("service up: ", service);
+      //initSocketIOClient( , )
+    });
+    panini.on('serviceDown', function(service) {
+      console.log("service down: ", service);
+    });
+    panini.start();
+  }
+
+  if (config.transport === 'osc' || config.transport === 'both') {
+    var osc = require('node-osc'),
+      OSCclient = new osc.Client(config.osc.address, config.osc.port),
+      OSCSender = {
+        name: 'osc',
+        sender: OSCclient,
+        send: function(path, action) {
+          if (config.debug == true) {
+            console.log('Sending ' + action + ' using osc');
+          }
+          this.sender.send(action, path);
+        }
+      }
+    transporter.push(OSCSender);
+  }
+};
+
+var initSocketIOClient = function(address, port){
+  console.log('Init socket.io client mode...');
+    var socket = require('socket.io-client')('http://'+address+':'+port);
     socket.on('connect', function() {
       console.log('connected to socket.io server');
     });
@@ -73,25 +105,7 @@ var initTransporter = function() {
       }
     };
     transporter.push(socketIO);
-  }
-
-  if (config.transport === 'osc' || config.transport === 'both') {
-    var osc = require('node-osc'),
-      OSCclient = new osc.Client(config.osc.address, config.osc.port),
-      OSCSender = {
-        name: 'osc',
-        sender: OSCclient,
-        send: function(path, action) {
-          if (config.debug == true) {
-            console.log('Sending ' + action + ' using osc');
-          }
-          this.sender.send(action, path);
-        }
-      }
-    transporter.push(OSCSender);
-  }
-
-};
+}
 
 var initWatcher = function() {
   var chokidar = require('chokidar');

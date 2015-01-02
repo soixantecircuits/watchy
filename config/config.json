@@ -7,6 +7,10 @@
       "port":8080
   },
   "state":"client",
+  "client":{
+    "address":"localhost",
+    "port":"3000"
+  },
   "port":8010,
   "transport":"socket.io",
   "debug":true
