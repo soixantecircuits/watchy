@@ -3,11 +3,13 @@
 var config = require('./config/config.json'),
   transporter = [],
   _ = require('lodash'),
-  initialScanComplete = false;
+  initialScanComplete = false,
+  app;
 
 var initTransporter = function() {
   if (config.transport === 'socket.io' || config.transport === 'both') {
-    var io = require('socket.io').listen(config.socketIO.port);
+    var io = require('socket.io')(app);
+    //var io = require('socket.io').listen(config.socketIO.port);
     var socketIO = {
       name: 'socket.io',
       sender: io,
@@ -17,7 +19,7 @@ var initTransporter = function() {
           console.log('No socket open');
         } else {
           if (config.debug == true) {
-            console.log('Sending ' + action + ' using osc');
+            console.log('Sending ' + action + ' using socket.io');
           }
           _.each(this.socketConnections, function(socket) {
             socket.emit(action, {
@@ -27,16 +29,18 @@ var initTransporter = function() {
         }
       }
     };
+
     socketIO.sender.sockets.on('connection', function(socket) {
       socket.on('hello', function(data) {
         if (config.debug == true) {
-          console.log('Browser connected');
+          console.log('client connected');
           console.log(data);
         }
       });
       socketIO.socketConnections.push(socket);
     });
     transporter.push(socketIO);
+
   }
 
   if (config.transport === 'osc' || config.transport === 'both') {
@@ -72,6 +76,8 @@ var initWatcher = function() {
         try {
           console.log(path);
           _.each(transporter, function(transporterElement) {
+            transporterElement.send(path, '/new-file');
+            //for legacy purpose we keep new image until june 2015.
             transporterElement.send(path, '/new-image');
           });
         } catch (err) {
@@ -106,8 +112,7 @@ var initWatcher = function() {
 }
 
 var initStatiqueServer = function() {
-  var Statique = require("statique"),
-    Http = require('http');
+  var Statique = require("statique");
 
   // Create *Le Statique* server
   var server = new Statique({
@@ -118,22 +123,24 @@ var initStatiqueServer = function() {
   });
 
   // Create server
-  Http.createServer(server.serve).listen(8000);
-
-  // Output
-  console.log("Listening on 8000.");
+  app = require('http').createServer(server.serve);
 }
+
 
 console.log("Initializing...");
 
+initStatiqueServer();
 initTransporter();
 
 //TODO add some ready event to tell the watcher to init.
 initWatcher();
 
-initStatiqueServer();
-
 console.log("...Initialized");
+
+// Output
+  console.log("Listening on: "+config.port);
+  app.listen(config.port);
+
 //WHY ?
 process.on('uncaughtException', function(err) {
   console.log(err);

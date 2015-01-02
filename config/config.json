@@ -6,9 +6,7 @@
       "address":"127.0.0.1",
       "port":8080
   },
-  "socketIO":{
-      "port":8010
-  },
-  "transport":"osc",
+  "port":8010,
+  "transport":"socket.io",
   "debug":true
 }
