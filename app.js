@@ -5,6 +5,9 @@ var config = require('./config/config.json'),
   _ = require('lodash'),
   initialScanComplete = false,
   mdns = require('mdns'),
+  reconnected = false,
+  reconnecting = false,
+  currentServiceAddress = '',
   app;
 
 var initTransporter = function() {
@@ -49,12 +52,21 @@ var initTransporter = function() {
     transporter.push(socketIO);
 
   } else if((config.transport === 'socket.io' || config.transport === 'both') && config.state === 'client') {
+
+    // Could be improved
     initSocketIOClient(config.client.address, config.client.port);
+
     // watch all http servers
-    var panini = mdns.createBrowser(mdns.tcp('websocket'));
+    var panini = mdns.createBrowser(mdns.tcp('socketio'));
     panini.on('serviceUp', function(service) {
       console.log("service up: ", service);
-      //initSocketIOClient( , )
+      //Should be cleaned to avoid creating useless 
+      //transporter = _.rest(transporter, { 'employer': 'slate' });
+      if(currentServiceAddress !== service.host.substr(0, service.host.length - 1)){
+        initSocketIOClient( service.host.substr(0, service.host.length - 1), service.port )
+        currentServiceAddress = service.host.substr(0, service.host.length - 1);
+      }
+      
     });
     panini.on('serviceDown', function(service) {
       console.log("service down: ", service);
@@ -80,17 +92,24 @@ var initTransporter = function() {
 };
 
 var initSocketIOClient = function(address, port){
-  console.log('Init socket.io client mode...');
+  console.log('Init socket.io client mode : ', address, port );
     var socket = require('socket.io-client')('http://'+address+':'+port);
     socket.on('connect', function() {
       console.log('connected to socket.io server');
-    });
-    socket.on('disconnect', function() {
+    })
+    .on('disconnect', function() {
       console.log('We\'ve been disconnected');
-    });
-    socket.on('error', function(){
+    })
+    .on('error', function(){
       console.log('error while connecting');
+    })
+    .on('reconnect', function(nbtry){
+      console.log('Successfull reconnect after ' + nbtry + ' trying.');
+    })
+    .on('reconnecting', function(nbtry){
+      console.log('Trying to reconnect.');
     });
+
 
     var socketIO = {
       name: 'socket.io-client',
@@ -128,10 +147,10 @@ var initWatcher = function() {
           console.log(relativePath);
 
           _.each(transporter, function(transporterElement) {
-            transporterElement.send(path, '/new-file');
-            transporterElement.send(path, 'image-saved');
+            transporterElement.send(relativePath, '/new-file');
+            transporterElement.send(relativePath, 'image-saved');
             //for legacy purpose we keep new image until june 2015.
-            transporterElement.send(path, '/new-image');
+            transporterElement.send(relativePath, '/new-image');
           });
         } catch (err) {
           console.log(err);
