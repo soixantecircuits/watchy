@@ -9,9 +9,9 @@
   "state":"client",
   "client":{
     "address":"localhost",
-    "port":"3000"
+    "port": 3000
   },
-  "port":8010,
+  "port": 8080,
   "transport":"socket.io",
   "debug":true
 }

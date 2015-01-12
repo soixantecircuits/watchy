@@ -1,4 +1,5 @@
 'use strict';
+//TODO : add namespace for client mode !
 
 var config = require('./config/config.json'),
   transporter = [],
@@ -11,7 +12,7 @@ var config = require('./config/config.json'),
   app;
 
 var initTransporter = function() {
-  if ((config.transport === 'socket.io' || config.transport === 'both') && config.state == 'server') {
+  if ((config.transport === 'socket.io' || config.transport === 'both') && config.state === 'server') {
     console.log('Init socket.io server mode...');
     var io = require('socket.io')(app);
     if (config.state === 'server') {
@@ -156,26 +157,26 @@ var initWatcher = function() {
           console.log(err);
         }
       } else {
-        console.log('File', path, 'was here');
+        console.log('Chokidar - File', path, 'was here');
       }
     })
     .on('addDir', function(path) {
-      console.log('Directory', path, 'has been added');
+      console.log('Chokidar - Directory', path, 'has been added');
     })
     .on('change', function(path) {
-      console.log('File', path, 'has been changed');
+      console.log('Chokidar - File', path, 'has been changed');
     })
     .on('unlink', function(path) {
-      console.log('File', path, 'has been removed');
+      console.log('Chokidar - File', path, 'has been removed');
     })
     .on('unlinkDir', function(path) {
-      console.log('Directory', path, 'has been removed');
+      console.log('Chokidar - Directory', path, 'has been removed');
     })
     .on('error', function(error) {
-      console.error('Error happened', error);
+      console.error('Chokidar - Error happened', error);
     })
     .on('ready', function() {
-      console.info('Initial scan complete. Ready for changes.');
+      console.info('Chokidar - Initial scan complete. Ready for changes.');
       initialScanComplete = true;
     })
     .on('raw', function(event, path, details) {
@@ -211,7 +212,10 @@ console.log("...Initialized");
 
 // Output
 console.log("Listening on: " + config.port);
-app.listen(config.port);
+app.listen(config.port)
+.on('error', function(err){
+  console.log(err);
+});
 
 //WHY ?
 process.on('uncaughtException', function(err) {
