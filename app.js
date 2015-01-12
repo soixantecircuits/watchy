@@ -60,13 +60,13 @@ var initTransporter = function() {
     var panini = mdns.createBrowser(mdns.tcp('socketio'));
     panini.on('serviceUp', function(service) {
       console.log("service up: ", service);
-      //Should be cleaned to avoid creating useless 
+      //Should be cleaned to avoid creating useless
       //transporter = _.rest(transporter, { 'employer': 'slate' });
       if(currentServiceAddress !== service.host.substr(0, service.host.length - 1)){
         initSocketIOClient( service.host.substr(0, service.host.length - 1), service.port )
         currentServiceAddress = service.host.substr(0, service.host.length - 1);
       }
-      
+
     });
     panini.on('serviceDown', function(service) {
       console.log("service down: ", service);
@@ -166,6 +166,23 @@ var initWatcher = function() {
       console.log('File', path, 'has been changed');
     })
     .on('unlink', function(path) {
+      if (initialScanComplete) {
+        try {
+          var os = require("os");
+          var relativePath = path.replace(config.watch.path, 'http://' + os.hostname() + ":" + config.port);
+
+          console.log(relativePath);
+
+          _.each(transporter, function(transporterElement) {
+            transporterElement.send(relativePath, '/delete-file');
+            transporterElement.send(relativePath, 'image-deleted');
+          });
+        } catch (err) {
+          console.log(err);
+        }
+      } else {
+        console.log('File', path, 'was here');
+      }
       console.log('File', path, 'has been removed');
     })
     .on('unlinkDir', function(path) {
