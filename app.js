@@ -9,6 +9,7 @@ var config = require('./config/config.json'),
   reconnected = false,
   reconnecting = false,
   currentServiceAddress = '',
+  namespaces = [],
   app;
 
 var initTransporter = function() {
@@ -60,7 +61,7 @@ var initTransporter = function() {
     // watch all http servers
     var panini = mdns.createBrowser(mdns.tcp('socketio'));
     panini.on('serviceUp', function(service) {
-      console.log("service up: ", service);
+      console.log("service up: ", service.fullname);
       //Should be cleaned to avoid creating useless
       //transporter = _.rest(transporter, { 'employer': 'slate' });
       if(currentServiceAddress !== service.host.substr(0, service.host.length - 1)){
@@ -70,7 +71,7 @@ var initTransporter = function() {
 
     });
     panini.on('serviceDown', function(service) {
-      console.log("service down: ", service);
+      console.log("service down: ", service.fullname);
     });
     panini.start();
   }
@@ -94,37 +95,49 @@ var initTransporter = function() {
 
 var initSocketIOClient = function(address, port){
   console.log('Init socket.io client mode : ', address, port );
-    var socket = require('socket.io-client')('http://'+address+':'+port);
-    socket.on('connect', function() {
-      console.log('connected to socket.io server');
-    })
-    .on('disconnect', function() {
-      console.log('We\'ve been disconnected');
-    })
-    .on('error', function(){
-      console.log('error while connecting');
-    })
-    .on('reconnect', function(nbtry){
-      console.log('Successfull reconnect after ' + nbtry + ' trying.');
-    })
-    .on('reconnecting', function(nbtry){
-      console.log('Trying to reconnect.');
-    });
+  var socket = require('socket.io-client')('http://'+address+':'+port);
+  socket.on('connect', function() {
+    socket.emit('binding');
+    console.log('connected to socket.io server');
+  })
+  .on('disconnect', function() {
+    console.log('We\'ve been disconnected');
+  })
+  .on('error', function(){
+    console.log('error while connecting');
+  })
+  .on('reconnect', function(nbtry){
+    console.log('Successfull reconnect after ' + nbtry + ' trying.');
+  })
+  .on('reconnecting', function(nbtry){
+    // console.log('Trying to reconnect.');
+  })
+  .on('bind-nsp', function (nsp){
+    if(_.contains(namespaces, nsp) === false){
+      namespaces.push(nsp);
+    }
+    var nspSocket = require('socket.io-client').connect('http://'+address+':'+port + nsp);
+    transporter.push(createSocketTransporter(nsp, nspSocket));
+  });
 
+  namespaces.push('/');
+  transporter.push(createSocketTransporter('/', socket));
+}
 
-    var socketIO = {
-      name: 'socket.io-client',
-      sender: socket,
-      send: function(path, action) {
-        if (config.debug == true) {
-            console.log('Sending ' + action + ' using socket.io client');
-        }
-        socket.emit(action, {
-          src: path
-        });
+function createSocketTransporter(name, socket){
+  var socketIO = {
+    name: name,
+    sender: socket,
+    send: function(path, action) {
+      if (config.debug == true) {
+        console.log('Sending', action, 'using', name);
       }
-    };
-    transporter.push(socketIO);
+      socket.emit(action, {
+        src: path
+      });
+    }
+  };
+  return socketIO;
 }
 
 var initWatcher = function() {
@@ -146,6 +159,13 @@ var initWatcher = function() {
           var relativePath = path.replace(config.watch.path, 'http://' + os.hostname() + ":" + config.port);
 
           console.log(relativePath);
+
+          // var splitedPath = path.split('/');
+          // var nsp = splitedPath[splitedPath.length - 2];
+          // nsp = nsp === config.watch.path.split('/').pop() ? '' : nsp;
+
+          // var transport = _.where(transporter, {name: '/' + nsp});
+          // transport[0].send(relativePath, 'image-saved');
 
           _.each(transporter, function(transporterElement) {
             transporterElement.send(relativePath, '/new-file');
