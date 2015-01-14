@@ -160,19 +160,18 @@ var initWatcher = function() {
 
           console.log(relativePath);
 
-          // var splitedPath = path.split('/');
-          // var nsp = splitedPath[splitedPath.length - 2];
-          // nsp = nsp === config.watch.path.split('/').pop() ? '' : nsp;
+          var splitedPath = path.split('/');
+          var nsp = splitedPath[splitedPath.length - 2];
+          nsp = nsp === config.watch.path.split('/').pop() ? '' : nsp;
 
-          // var transport = _.where(transporter, {name: '/' + nsp});
-          // transport[0].send(relativePath, 'image-saved');
+          var transporterSocketio = _.where(transporter, {name: '/' + nsp});
+          transporterSocketio[0].send(relativePath, 'image-saved');
 
-          _.each(transporter, function(transporterElement) {
-            transporterElement.send(relativePath, '/new-file');
-            transporterElement.send(relativePath, 'image-saved');
-            //for legacy purpose we keep new image until june 2015.
-            transporterElement.send(relativePath, '/new-image');
-          });
+          if (config.transport === 'osc' || config.transport === 'both') {
+            var transporterOsc = _.where(transporter, {name: 'osc'});
+            transporterOsc[0].send(relativePath, 'new-file');
+            transporterOsc[0].send(relativePath, 'new-image'); // legacy until june 2015
+          }
         } catch (err) {
           console.log(err);
         }
@@ -194,10 +193,17 @@ var initWatcher = function() {
 
           console.log(relativePath);
 
-          _.each(transporter, function(transporterElement) {
-            transporterElement.send(relativePath, '/delete-file');
-            transporterElement.send(relativePath, 'image-deleted');
-          });
+          var splitedPath = path.split('/');
+          var nsp = splitedPath[splitedPath.length - 2];
+          nsp = nsp === config.watch.path.split('/').pop() ? '' : nsp;
+
+          var transporterSocketio = _.where(transporter, {name: '/' + nsp});
+          transporterSocketio[0].send(relativePath, 'image-deleted');
+
+          if (config.transport === 'osc' || config.transport === 'both') {
+            var transporterOsc = _.where(transporter, {name: 'osc'});
+            transporterOsc[0].send(relativePath, 'image-deleted');
+          }
         } catch (err) {
           console.log(err);
         }
