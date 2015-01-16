@@ -272,6 +272,10 @@ if (fs.existsSync(config.watch.path)) {
     var child_process = require("child_process");
     child_process.exec("hostname -f", function(err, stdout, stderr) {
       host = stdout.trim();
+      //hot and dirty fix
+      if(host.indexOf('local') < 0){
+        host += '.local'
+      }
     });
   }
   console.log("Listening on: " + config.port);
