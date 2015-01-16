@@ -239,7 +239,7 @@ var initWatcher = function() {
       initialScanComplete = true;
     })
     .on('raw', function(event, path, details) {
-      console.info('Raw event info:', event, path, details)
+      //console.info('Raw event info:', event, path, details)
     })
 }
 
@@ -253,6 +253,7 @@ var initStatiqueServer = function() {
   }).setRoutes({
     "/": "/html/index.html"
   });
+
   // Create server
   app = require('http').createServer(server.serve);
 }
@@ -270,6 +271,7 @@ if (fs.existsSync(config.watch.path)) {
   app.listen(config.port)
     .on('error', function(err) {
       console.log(err);
+      process.exit(1);
     });
 } else {
   console.log('Sorry, we can\'t watch something that does not exist');
