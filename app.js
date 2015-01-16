@@ -244,7 +244,7 @@ var initWatcher = function() {
       initialScanComplete = true;
     })
     .on('raw', function(event, path, details) {
-      console.info('Raw event info:', event, path, details)
+      //console.info('Raw event info:', event, path, details)
     })
 }
 
