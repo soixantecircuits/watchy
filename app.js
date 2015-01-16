@@ -10,6 +10,7 @@ var config = require('./config/config.json'),
   reconnected = false,
   reconnecting = false,
   currentServiceAddress = '',
+  fs = require('fs'),
   namespaces = [],
   app;
 
@@ -54,7 +55,7 @@ var initTransporter = function() {
     });
     transporter.push(socketIO);
 
-  } else if((config.transport === 'socket.io' || config.transport === 'both') && config.state === 'client') {
+  } else if ((config.transport === 'socket.io' || config.transport === 'both') && config.state === 'client') {
 
     // Could be improved
     initSocketIOClient(config.client.address, config.client.port);
@@ -65,8 +66,8 @@ var initTransporter = function() {
       console.log("service up: ", service.fullname);
       //Should be cleaned to avoid creating useless
       //transporter = _.rest(transporter, { 'employer': 'slate' });
-      if(currentServiceAddress !== service.host.substr(0, service.host.length - 1)){
-        initSocketIOClient( service.host.substr(0, service.host.length - 1), service.port )
+      if (currentServiceAddress !== service.host.substr(0, service.host.length - 1)) {
+        initSocketIOClient(service.host.substr(0, service.host.length - 1), service.port)
         currentServiceAddress = service.host.substr(0, service.host.length - 1);
       }
 
@@ -94,43 +95,44 @@ var initTransporter = function() {
   }
 };
 
-var initSocketIOClient = function(address, port){
-  console.log('Init socket.io client mode : ', address, port );
-  var socket = require('socket.io-client')('http://'+address+':'+port);
+var initSocketIOClient = function(address, port) {
+  console.log('Init socket.io client mode : ', address, port);
+  var socket = require('socket.io-client')('http://' + address + ':' + port);
   socket.on('connect', function() {
-    socket.emit('binding');
-    console.log('connected to socket.io server');
-  })
-  .on('disconnect', function() {
-    console.log('We\'ve been disconnected');
-  })
-  .on('error', function(){
-    console.log('error while connecting');
-  })
-  .on('reconnect', function(nbtry){
-    console.log('Successfull reconnect after ' + nbtry + ' trying.');
-  })
-  .on('reconnecting', function(nbtry){
-    // console.log('Trying to reconnect.');
-  })
-  .on('bind-nsp', function (nsp){
-    if(_.contains(namespaces, nsp) === false){
-      mkdirp(config.watch.path+nsp, function(err) { 
-        if(err){
-          console.log('mkdirp: '+err);
+      socket.emit('binding');
+      console.log('connected to socket.io server');
+    })
+    .on('disconnect', function() {
+      console.log('We\'ve been disconnected');
+    })
+    .on('error', function() {
+      console.log('error while connecting');
+    })
+    .on('reconnect', function(nbtry) {
+      console.log('Successfull reconnect after ' + nbtry + ' trying.');
+    })
+    .on('reconnecting', function(nbtry) {
+      // console.log('Trying to reconnect.');
+    })
+    .on('bind-nsp', function(nsp) {
+      if (config.watch.path)
+        if (_.contains(namespaces, nsp) === false) {
+          mkdirp(config.watch.path + nsp, function(err) {
+            if (err) {
+              console.log('mkdirp: ' + err);
+            }
+          });
+          namespaces.push(nsp);
         }
-      });
-      namespaces.push(nsp);
-    }
-    var nspSocket = require('socket.io-client').connect('http://'+address+':'+port + nsp);
-    transporter.push(createSocketTransporter(nsp, nspSocket));
-  });
+      var nspSocket = require('socket.io-client').connect('http://' + address + ':' + port + nsp);
+      transporter.push(createSocketTransporter(nsp, nspSocket));
+    });
 
   namespaces.push('/');
   transporter.push(createSocketTransporter('/', socket));
 }
 
-function createSocketTransporter(name, socket){
+function createSocketTransporter(name, socket) {
   var socketIO = {
     name: name,
     sender: socket,
@@ -170,11 +172,15 @@ var initWatcher = function() {
           var nsp = splitedPath[splitedPath.length - 2];
           nsp = nsp === config.watch.path.split('/').pop() ? '' : nsp;
 
-          var transporterSocketio = _.where(transporter, {name: '/' + nsp});
+          var transporterSocketio = _.where(transporter, {
+            name: '/' + nsp
+          });
           transporterSocketio[0].send(relativePath, 'image-saved');
 
           if (config.transport === 'osc' || config.transport === 'both') {
-            var transporterOsc = _.where(transporter, {name: 'osc'});
+            var transporterOsc = _.where(transporter, {
+              name: 'osc'
+            });
             transporterOsc[0].send(relativePath, 'new-file');
             transporterOsc[0].send(relativePath, 'new-image'); // legacy until june 2015
           }
@@ -203,11 +209,15 @@ var initWatcher = function() {
           var nsp = splitedPath[splitedPath.length - 2];
           nsp = nsp === config.watch.path.split('/').pop() ? '' : nsp;
 
-          var transporterSocketio = _.where(transporter, {name: '/' + nsp});
+          var transporterSocketio = _.where(transporter, {
+            name: '/' + nsp
+          });
           transporterSocketio[0].send(relativePath, 'image-deleted');
 
           if (config.transport === 'osc' || config.transport === 'both') {
-            var transporterOsc = _.where(transporter, {name: 'osc'});
+            var transporterOsc = _.where(transporter, {
+              name: 'osc'
+            });
             transporterOsc[0].send(relativePath, 'image-deleted');
           }
         } catch (err) {
@@ -249,22 +259,18 @@ var initStatiqueServer = function() {
 
 console.log("Initializing...");
 
-initStatiqueServer();
-initTransporter();
-
-//TODO add some ready event to tell the watcher to init.
-initWatcher();
-
-console.log("...Initialized");
-
-// Output
-console.log("Listening on: " + config.port);
-app.listen(config.port)
-.on('error', function(err){
-  console.log(err);
-});
-
-//WHY ?
-process.on('uncaughtException', function(err) {
-  console.log(err);
-});
+if (fs.existsSync(config.watch.path)) {
+  initStatiqueServer();
+  initTransporter();
+  //TODO add some ready event to tell the watcher to init.
+  initWatcher();
+  console.log("...Initialized");
+  // Output
+  console.log("Listening on: " + config.port);
+  app.listen(config.port)
+    .on('error', function(err) {
+      console.log(err);
+    });
+} else {
+  console.log('Sorry, we can\'t watch something that does not exist');
+}

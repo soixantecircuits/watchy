@@ -1,6 +1,6 @@
 {
   "watch":{
-      "path":"/home/chacal/Images/panini"
+      "path":"/Users/gabrielstuff/Desktop"
   },
   "osc":{
       "address":"127.0.0.1",
@@ -9,7 +9,7 @@
   "state":"client",
   "client":{
     "address":"localhost",
-    "port": 3000
+    "port": 8011
   },
   "port": 8080,
   "transport":"socket.io",
