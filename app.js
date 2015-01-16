@@ -161,42 +161,48 @@ var initWatcher = function() {
     .on('add', function(path) {
 
       if (initialScanComplete) {
-        try {
-          console.log(path);
-          console.log(config.watch.path);
-          var os = require("os");
-          var relativePath = path.replace(config.watch.path, 'http://' + host + ":" + config.port);
+        //Add a slight delay to avoid error on get when too fast request are made.
+        setTimeout(function() {
+          try {
+            console.log(path);
+            console.log(config.watch.path);
+            var os = require("os");
+            var relativePath = path.replace(config.watch.path, 'http://' + host + ":" + config.port);
 
-          console.log(relativePath);
+            console.log(relativePath);
 
-          var splitedPath = path.split('/');
-          var nsp = splitedPath[splitedPath.length - 2];
-          nsp = nsp === config.watch.path.split('/').pop() ? '' : nsp;
+            var splitedPath = path.split('/');
+            var nsp = splitedPath[splitedPath.length - 2];
+            nsp = nsp === config.watch.path.split('/').pop() ? '' : nsp;
 
-          var transporterSocketio = _.where(transporter, {
-            name: '/' + nsp
-          });
-          transporterSocketio[0].send(relativePath, 'image-saved');
-
-          if (config.transport === 'osc' || config.transport === 'both') {
-            var transporterOsc = _.where(transporter, {
-              name: 'osc'
+            var transporterSocketio = _.where(transporter, {
+              name: '/' + nsp
             });
-            transporterOsc[0].send(relativePath, 'new-file');
-            transporterOsc[0].send(relativePath, 'new-image'); // legacy until june 2015
+            transporterSocketio[0].send(relativePath, 'image-saved');
+
+            if (config.transport === 'osc' || config.transport === 'both') {
+              var transporterOsc = _.where(transporter, {
+                name: 'osc'
+              });
+              transporterOsc[0].send(relativePath, 'new-file');
+              transporterOsc[0].send(relativePath, 'new-image'); // legacy until june 2015
+            }
+          } catch (err) {
+            console.log(err);
           }
-        } catch (err) {
-          console.log(err);
-        }
+        }, 500);
       } else {
-        console.log('Chokidar - File', path, 'was here');
+        console.log('Chokidar - File', path, 'was here... not sending');
       }
     })
     .on('addDir', function(path) {
       console.log('Chokidar - Directory', path, 'has been added');
     })
-    .on('change', function(path) {
+    .on('change', function(path, stats) {
       console.log('Chokidar - File', path, 'has been changed');
+      if (stats) {
+        console.log(stats);
+      }
     })
     .on('unlink', function(path) {
       if (initialScanComplete) {
@@ -238,23 +244,33 @@ var initWatcher = function() {
       initialScanComplete = true;
     })
     .on('raw', function(event, path, details) {
-      //console.info('Raw event info:', event, path, details)
+      console.info('Raw event info:', event, path, details)
     })
 }
 
 var initStatiqueServer = function() {
+
+  var staticServer = require('node-static'),
+    fileServer = new staticServer.Server(config.watch.path);
+
+  app = require('http').createServer(function(request, response) {
+    request.addListener('end', function() {
+      fileServer.serve(request, response);
+    }).resume();
+  });
+
+  /* Does not provide meaning full message when error occur
   var Statique = require("statique");
 
   // Create *Le Statique* server
   var server = new Statique({
-    root: config.watch.path,
-    cache: 36000
+    root: config.watch.path
   }).setRoutes({
     "/": "/html/index.html"
   });
 
   // Create server
-  app = require('http').createServer(server.serve);
+  app = require('http').createServer(server.serve);*/
 }
 
 console.log("Initializing...");
@@ -273,7 +289,7 @@ if (fs.existsSync(config.watch.path)) {
     child_process.exec("hostname -f", function(err, stdout, stderr) {
       host = stdout.trim();
       //hot and dirty fix
-      if(host.indexOf('local') < 0){
+      if (host.indexOf('local') < 0) {
         host += '.local'
       }
     });
