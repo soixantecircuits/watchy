@@ -12,8 +12,8 @@ var config = require('./config/config.json'),
   currentServiceAddress = '',
   fs = require('fs'),
   namespaces = [],
-  host = '';
-app;
+  host = '',
+  app;
 
 var initTransporter = function() {
   if ((config.transport === 'socket.io' || config.transport === 'both') && config.state === 'server') {
@@ -165,7 +165,7 @@ var initWatcher = function() {
           console.log(path);
           console.log(config.watch.path);
           var os = require("os");
-          var relativePath = path.replace(config.watch.path, 'http://' + os.hostname() + ":" + config.port);
+          var relativePath = path.replace(config.watch.path, 'http://' + host + ":" + config.port);
 
           console.log(relativePath);
 
