@@ -12,7 +12,8 @@ var config = require('./config/config.json'),
   currentServiceAddress = '',
   fs = require('fs'),
   namespaces = [],
-  app;
+  host = '';
+app;
 
 var initTransporter = function() {
   if ((config.transport === 'socket.io' || config.transport === 'both') && config.state === 'server') {
@@ -200,9 +201,7 @@ var initWatcher = function() {
     .on('unlink', function(path) {
       if (initialScanComplete) {
         try {
-          var os = require("os");
-          var relativePath = path.replace(config.watch.path, 'http://' + os.hostname() + ":" + config.port);
-
+          var relativePath = path.replace(config.watch.path, 'http://' + host + ":" + config.port);
           console.log(relativePath);
 
           var splitedPath = path.split('/');
@@ -267,6 +266,14 @@ if (fs.existsSync(config.watch.path)) {
   initWatcher();
   console.log("...Initialized");
   // Output
+  var os = require("os");
+  host = os.hostname();
+  if (os.platform() === 'linux') {
+    var child_process = require("child_process");
+    child_process.exec("hostname -f", function(err, stdout, stderr) {
+      host = stdout.trim();
+    });
+  }
   console.log("Listening on: " + config.port);
   app.listen(config.port)
     .on('error', function(err) {

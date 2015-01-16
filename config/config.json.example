@@ -1,11 +1,17 @@
 {
-  "watch": {
-      "path": {
-          "screen1": "/path/to/screen/one",
-          "screen2": "/path/to/screen/two"
-        }
+  "watch":{
+      "path":"/Users/gabrielstuff/Desktop"
   },
-  "socket": {
-      "address": "http://localhost:80"
-  }
+  "osc":{
+      "address":"127.0.0.1",
+      "port":8080
+  },
+  "state":"client",
+  "client":{
+    "address":"localhost",
+    "port": 8011
+  },
+  "port": 8080,
+  "transport":"socket.io",
+  "debug":true
 }
