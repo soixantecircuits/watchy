@@ -9,6 +9,9 @@ A basic app that can watch and send modification over Socket.IO
 Install the app via npm. Clone the repo, cd into it and run `npm install`
 
 ``` bash
+$ sudo add-apt-repository ppa:chris-lea/node.js
+$ sudo apt-get update
+$ sudo apt-get install nodejs
 $ git clone git@github.com:soixantecircuits/watchy.git
 $ cd watchy && npm install
 ```

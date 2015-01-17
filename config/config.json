@@ -1,6 +1,6 @@
 {
   "watch":{
-      "path":"/Users/gabrielstuff/Desktop"
+      "path":"/home/mina/Pictures/panini"
   },
   "osc":{
       "address":"127.0.0.1",
