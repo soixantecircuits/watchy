@@ -76,6 +76,9 @@ var initTransporter = function() {
     panini.on('serviceDown', function(service) {
       console.log("service down: ", service.fullname);
     });
+    panini.on('error', function (err){
+      console.log(err);
+    })
     panini.start();
   }
 
@@ -164,7 +167,7 @@ var initWatcher = function() {
         //Add a slight delay to avoid error on get when too fast request are made.
         //See bug https://github.com/joyent/node/issues/4863
         //Data is not ready but someone is trying to access to ....
-        
+
         setTimeout(function() {
           try {
             console.log(path);
