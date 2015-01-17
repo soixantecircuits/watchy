@@ -162,6 +162,9 @@ var initWatcher = function() {
 
       if (initialScanComplete) {
         //Add a slight delay to avoid error on get when too fast request are made.
+        //See bug https://github.com/joyent/node/issues/4863
+        //Data is not ready but someone is trying to access to ....
+        
         setTimeout(function() {
           try {
             console.log(path);
