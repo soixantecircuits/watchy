@@ -12,6 +12,7 @@ Install the app via npm. Clone the repo, cd into it and run `npm install`
 $ sudo add-apt-repository ppa:chris-lea/node.js
 $ sudo apt-get update
 $ sudo apt-get install nodejs
+$ sudo apt-get install avahi-daemon avahi-discover libnss-mdns libavahi-compat-libdnssd-dev curl build-essential
 $ git clone git@github.com:soixantecircuits/watchy.git
 $ cd watchy && npm install
 ```
