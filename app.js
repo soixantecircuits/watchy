@@ -4,6 +4,7 @@
 var config = require('./config/config.json'),
   transporter = [],
   _ = require('lodash'),
+  util = require('util'),
   initialScanComplete = false,
   mdns = require('mdns'),
   mkdirp = require('mkdirp'),
@@ -76,7 +77,7 @@ var initTransporter = function() {
     panini.on('serviceDown', function(service) {
       console.log("service down: ", service.fullname);
     });
-    panini.on('error', function (err){
+    panini.on('error', function(err) {
       console.log(err);
     })
     panini.start();
@@ -275,11 +276,17 @@ var initWatcher = function() {
 var initStatiqueServer = function() {
 
   var staticServer = require('node-static'),
-    fileServer = new staticServer.Server(config.watch.path);
+    fileServer = new staticServer.Server(config.watch.path, {
+      cache: 7200,
+      serverInfo: "watchy/" + host
+    });
 
   app = require('http').createServer(function(request, response) {
     request.addListener('end', function() {
-      fileServer.serve(request, response);
+      fileServer.serve(request, response).addListener('error', function(err) {
+        util.error("Error serving " + request.url + " - " + err.message);
+        response.end();
+      });
     }).resume();
   });
 
@@ -333,5 +340,5 @@ if (fs.existsSync(config.watch.path)) {
       process.exit(1);
     });
 } else {
-  console.log('Sorry, we can\'t watch something that does not exist');
+  console.log('Sorry, we can\'t watch something that does not exist: ', config.watch.path);
 }
