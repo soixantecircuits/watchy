@@ -164,7 +164,7 @@ var initWatcher = function() {
         //Add a slight delay to avoid error on get when too fast request are made.
         //See bug https://github.com/joyent/node/issues/4863
         //Data is not ready but someone is trying to access to ....
-        
+
         setTimeout(function() {
           try {
             console.log(path);
@@ -178,17 +178,27 @@ var initWatcher = function() {
             var nsp = splitedPath[splitedPath.length - 2];
             nsp = nsp === config.watch.path.split('/').pop() ? '' : nsp;
 
+
             var transporterSocketio = _.where(transporter, {
               name: '/' + nsp
             });
-            transporterSocketio[0].send(relativePath, 'image-saved');
+
+            if (transporterSocketio.length > 0) {
+              transporterSocketio[0].send(relativePath, 'image-saved');
+            } else {
+              console.log('Sorry we can not send using socket.io, no transport available, check your network\nor your namspace...');
+            }
 
             if (config.transport === 'osc' || config.transport === 'both') {
               var transporterOsc = _.where(transporter, {
                 name: 'osc'
               });
-              transporterOsc[0].send(relativePath, 'new-file');
-              transporterOsc[0].send(relativePath, 'new-image'); // legacy until june 2015
+              if (transporterOsc.length > 0) {
+                transporterOsc[0].send(relativePath, 'new-file');
+                transporterOsc[0].send(relativePath, 'new-image'); // legacy until june 2015
+              } else {
+                console.log('Sorry we can not send using OSC, no transport available');
+              }
             }
           } catch (err) {
             console.log(err);
@@ -220,13 +230,21 @@ var initWatcher = function() {
           var transporterSocketio = _.where(transporter, {
             name: '/' + nsp
           });
-          transporterSocketio[0].send(relativePath, 'image-deleted');
-
+          if (transporterSocketio.length > 0) {
+            transporterSocketio[0].send(relativePath, 'image-deleted');
+          } else {
+            console.log('Sorry we can not send using OSC, no transport available');
+          }
           if (config.transport === 'osc' || config.transport === 'both') {
             var transporterOsc = _.where(transporter, {
               name: 'osc'
             });
-            transporterOsc[0].send(relativePath, 'image-deleted');
+            if (transporterOsc.length > 0) {
+              transporterOsc[0].send(relativePath, 'image-deleted');
+            } else {
+              console.log('Sorry we can not send using OSC, no transport available');
+            }
+
           }
         } catch (err) {
           console.log(err);
@@ -297,6 +315,14 @@ if (fs.existsSync(config.watch.path)) {
       }
     });
   }
+  require('dns').resolve('www.google.com', function(err) {
+    if (err) {
+      console.log('No internet connection, serving from localhost');
+      host = '127.0.0.1';
+    } else {
+      console.log('All fine, we have access to internet');
+    }
+  });
   console.log("Listening on: " + config.port);
   app.listen(config.port)
     .on('error', function(err) {

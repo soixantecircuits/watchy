@@ -9,7 +9,7 @@
   "state":"client",
   "client":{
     "address":"localhost",
-    "port": 8011
+    "port": 8001
   },
   "port": 8080,
   "transport":"socket.io",
