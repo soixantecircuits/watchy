@@ -76,6 +76,9 @@ var initTransporter = function() {
     panini.on('serviceDown', function(service) {
       console.log("service down: ", service.fullname);
     });
+    panini.on('error', function (err){
+      console.log(err);
+    })
     panini.start();
   }
 
