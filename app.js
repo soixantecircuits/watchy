@@ -63,7 +63,7 @@ var initTransporter = function() {
     initSocketIOClient(config.client.address, config.client.port);
 
     // watch all http servers
-    var panini = mdns.createBrowser(mdns.tcp('socketio'));
+    var panini = mdns.createBrowser(mdns.tcp(config.servicelookup.name));
     panini.on('serviceUp', function(service) {
       console.log("service up: ", service.fullname);
       //Should be cleaned to avoid creating useless
@@ -105,7 +105,7 @@ var initSocketIOClient = function(address, port) {
   var socket = require('socket.io-client')('http://' + address + ':' + port);
   socket.on('connect', function() {
       socket.emit('binding');
-      console.log('connected to socket.io server');
+      console.log('connected to socket.io server: ', address, port);
     })
     .on('disconnect', function() {
       console.log('We\'ve been disconnected');
@@ -117,7 +117,7 @@ var initSocketIOClient = function(address, port) {
       console.log('Successfull reconnect after ' + nbtry + ' trying.');
     })
     .on('reconnecting', function(nbtry) {
-      // console.log('Trying to reconnect.');
+       console.log('Trying to reconnect to: ',address, port);
     })
     .on('bind-nsp', function(nsp) {
       if (config.watch.path)
@@ -188,7 +188,9 @@ var initWatcher = function() {
             });
 
             if (transporterSocketio.length > 0) {
-              transporterSocketio[0].send(relativePath, 'image-saved');
+              _.each(transporterSocketio, function(senderIO, index){
+                senderIO.send(relativePath, 'image-saved');
+              })
             } else {
               console.log('Sorry we can not send using socket.io, no transport available, check your network\nor your namspace...');
             }
@@ -235,7 +237,10 @@ var initWatcher = function() {
             name: '/' + nsp
           });
           if (transporterSocketio.length > 0) {
-            transporterSocketio[0].send(relativePath, 'image-deleted');
+            //transporterSocketio[0].send(relativePath, 'image-deleted');
+            _.each(transporterSocketio, function(senderIO, index){
+                senderIO.send(relativePath, 'image-deleted');
+              })
           } else {
             console.log('Sorry we can not send using OSC, no transport available');
           }

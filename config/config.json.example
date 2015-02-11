@@ -11,6 +11,9 @@
     "address":"localhost",
     "port": 8011
   },
+  "servicelookup":{
+    "name":"socket.io"
+  },
   "port": 8080,
   "transport":"socket.io",
   "debug":true
