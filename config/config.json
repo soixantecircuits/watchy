@@ -1,6 +1,6 @@
 {
   "watch":{
-      "path": "/path/to/your/folder"
+      "path": "/home/hugo/Pictures/projets/panini"
   },
   "osc":{
       "address": "127.0.0.1",
