@@ -1,0 +1,20 @@
+{
+  "watch":{
+      "path": "/path/to/your/folder"
+  },
+  "osc":{
+      "address": "127.0.0.1",
+      "port": 8080
+  },
+  "state": "client",
+  "client": {
+    "address": "localhost",
+    "port": 8011
+  },
+  "servicelookup": {
+    "name": "socketio"
+  },
+  "port": 8080,
+  "transport": "socket.io",
+  "debug": true
+}
