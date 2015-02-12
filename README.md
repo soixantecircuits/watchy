@@ -39,4 +39,4 @@ $ npm start
 
 ## TODO
 
-- Add forever as service.
+- Find nice name that no one has thought of.
