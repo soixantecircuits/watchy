@@ -174,7 +174,8 @@ var initWatcher = function() {
             console.log(path);
             console.log(config.watch.path);
             var os = require("os");
-            var relativePath = path.replace(config.watch.path, 'http://' + host + ":" + config.port);
+            var watchPath = (config.watch.path.charAt(config.watch.path.length - 1) !== '/') ? config.watch.path : config.watch.path.substring(0, config.watch.path.length - 1);
+            var relativePath = path.replace(watchPath, 'http://' + host + ":" + config.port);
 
             console.log(relativePath);
 
