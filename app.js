@@ -62,25 +62,36 @@ var initTransporter = function() {
     // Could be improved
     initSocketIOClient(config.client.address, config.client.port);
 
-    // watch all http servers
-    var panini = mdns.createBrowser(mdns.tcp(config.servicelookup.name));
-    panini.on('serviceUp', function(service) {
-      console.log("service up: ", service.fullname);
-      //Should be cleaned to avoid creating useless
-      //transporter = _.rest(transporter, { 'employer': 'slate' });
-      if (currentServiceAddress !== service.host.substr(0, service.host.length - 1)) {
-        initSocketIOClient(service.host.substr(0, service.host.length - 1), service.port)
-        currentServiceAddress = service.host.substr(0, service.host.length - 1);
+    var handleError = function(error) {
+      switch (error.errorCode) {
+        case mdns.kDNSServiceErr_Unknown:
+          console.warn(error);
+          setTimeout(createAdvertisement, 5000);
+          break;
+        default:
+          throw error;
       }
+    };
+    
+    try {
+      var panini = mdns.createBrowser(mdns.tcp(config.servicelookup.name));
+      panini.on('serviceUp', function(service) {
+        console.log("service up: ", service.fullname);
+        //Should be cleaned to avoid creating useless
+        //transporter = _.rest(transporter, { 'employer': 'slate' });
+        if (currentServiceAddress !== service.host.substr(0, service.host.length - 1)) {
+          initSocketIOClient(service.host.substr(0, service.host.length - 1), service.port)
+          currentServiceAddress = service.host.substr(0, service.host.length - 1);
+        }
 
-    });
-    panini.on('serviceDown', function(service) {
-      console.log("service down: ", service.fullname);
-    });
-    panini.on('error', function(err) {
-      console.log(err);
-    })
-    panini.start();
+      });
+      panini.on('serviceDown', function(service) {
+        console.log("service down: ", service.fullname);
+      });
+      panini.start();
+    } catch (ex) {
+      handleError(ex);
+    }
   }
 
   if (config.transport === 'osc' || config.transport === 'both') {
@@ -104,9 +115,9 @@ var initSocketIOClient = function(address, port) {
   console.log('Init socket.io client mode : ', address, port);
   var socket = require('socket.io-client')('http://' + address + ':' + port);
   socket.on('connect', function() {
-      socket.emit('binding');
-      console.log('connected to socket.io server: ', address, port);
-    })
+    socket.emit('binding');
+    console.log('connected to socket.io server: ', address, port);
+  })
     .on('disconnect', function() {
       console.log('We\'ve been disconnected');
     })
@@ -117,7 +128,7 @@ var initSocketIOClient = function(address, port) {
       console.log('Successfull reconnect after ' + nbtry + ' trying.');
     })
     .on('reconnecting', function(nbtry) {
-       console.log('Trying to reconnect to: ',address, port);
+      console.log('Trying to reconnect to: ', address, port);
     })
     .on('bind-nsp', function(nsp) {
       if (config.watch.path)
@@ -128,7 +139,7 @@ var initSocketIOClient = function(address, port) {
             }
           });
           namespaces.push(nsp);
-        }
+      }
       var nspSocket = require('socket.io-client').connect('http://' + address + ':' + port + nsp);
       transporter.push(createSocketTransporter(nsp, nspSocket));
     });
@@ -189,7 +200,7 @@ var initWatcher = function() {
             });
 
             if (transporterSocketio.length > 0) {
-              _.each(transporterSocketio, function(senderIO, index){
+              _.each(transporterSocketio, function(senderIO, index) {
                 senderIO.send(relativePath, 'image-saved');
               })
             } else {
@@ -239,9 +250,9 @@ var initWatcher = function() {
           });
           if (transporterSocketio.length > 0) {
             //transporterSocketio[0].send(relativePath, 'image-deleted');
-            _.each(transporterSocketio, function(senderIO, index){
-                senderIO.send(relativePath, 'image-deleted');
-              })
+            _.each(transporterSocketio, function(senderIO, index) {
+              senderIO.send(relativePath, 'image-deleted');
+            })
           } else {
             console.log('Sorry we can not send using OSC, no transport available');
           }
