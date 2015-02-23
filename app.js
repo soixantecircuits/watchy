@@ -14,6 +14,7 @@ var config = require('./config/config.json'),
   fs = require('fs'),
   namespaces = [],
   host = '',
+  connected = false,
   app;
 
 var initTransporter = function() {
@@ -21,8 +22,7 @@ var initTransporter = function() {
     console.log('Init socket.io server mode...');
     var io = require('socket.io')(app);
     if (config.state === 'server') {
-      // advertise a http server on port 4321
-      var ad = mdns.createAdvertisement(mdns.tcp('socket-io'), config.port);
+      var ad = mdns.createAdvertisement(mdns.tcp('watchy'), config.port);
       ad.start();
     }
     //var io = require('socket.io').listen(config.socketIO.port);
@@ -60,6 +60,7 @@ var initTransporter = function() {
   } else if ((config.transport === 'socket.io' || config.transport === 'both') && config.state === 'client') {
 
     // Could be improved
+
     initSocketIOClient(config.client.address, config.client.port);
 
     var handleError = function(error) {
@@ -116,7 +117,9 @@ var initSocketIOClient = function(address, port) {
   var socket = require('socket.io-client')('http://' + address + ':' + port);
   socket.on('connect', function() {
     socket.emit('binding');
-    console.log('connected to socket.io server: ', address, port);
+    console.log('Connected to socket.io server: ', address, port);
+    //TODO Should bind to a specific socket and not a global
+      connected = true;
   })
     .on('disconnect', function() {
       console.log('We\'ve been disconnected');
@@ -128,7 +131,9 @@ var initSocketIOClient = function(address, port) {
       console.log('Successfull reconnect after ' + nbtry + ' trying.');
     })
     .on('reconnecting', function(nbtry) {
-      console.log('Trying to reconnect to: ', address, port);
+      if(!connected || config.multiConnect){
+        console.warn('Trying to reconnect to: ', address, port);
+      } 
     })
     .on('bind-nsp', function(nsp) {
       if (config.watch.path)

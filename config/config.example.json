@@ -12,8 +12,9 @@
     "port": 8011
   },
   "servicelookup": {
-    "name": "socketio"
+    "name": "panini"
   },
+  "multiConnect": false,
   "port": 8080,
   "transport": "socket.io",
   "debug": true
