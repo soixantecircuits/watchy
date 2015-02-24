@@ -145,6 +145,7 @@ var initSocketIOClient = function(address, port) {
           });
           namespaces.push(nsp);
       }
+      console.log('Binding folder');
       var nspSocket = require('socket.io-client').connect('http://' + address + ':' + port + nsp);
       transporter.push(createSocketTransporter(nsp, nspSocket));
     });
