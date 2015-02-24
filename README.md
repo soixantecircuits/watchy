@@ -39,4 +39,5 @@ $ npm start
 
 ## TODO
 
+- Don't connect twite to the same service/adress
 - Find nice name that no one has thought of.

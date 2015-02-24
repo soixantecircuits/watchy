@@ -8,6 +8,7 @@ var config = require('./config/config.json'),
   initialScanComplete = false,
   mdns = require('mdns'),
   mkdirp = require('mkdirp'),
+  ip = require('ip'),
   reconnected = false,
   reconnecting = false,
   currentServiceAddress = '',
@@ -117,6 +118,8 @@ var initSocketIOClient = function(address, port) {
   var socket = require('socket.io-client')('http://' + address + ':' + port);
   socket.on('connect', function() {
     socket.emit('binding');
+    host = ip.address();
+    console.log(host);
     console.log('Connected to socket.io server: ', address, port);
     //TODO Should bind to a specific socket and not a global
       connected = true;
@@ -199,11 +202,16 @@ var initWatcher = function() {
             var nsp = splitedPath[splitedPath.length - 2];
             nsp = nsp === config.watch.path.split('/').pop() ? '' : nsp;
 
+            nsp = path.replace(config.watch.path, "").split('/')[0];
+            //check if it is a file (should have an extension, should be improved to handle folder with "." dot)
+            nsp = nsp.indexOf('.') >= 0 ? '' : nsp
 
+            var queryNamespace = '/' + nsp;
+            console.log(queryNamespace);
             var transporterSocketio = _.where(transporter, {
-              name: '/' + nsp
+              name: queryNamespace
             });
-
+            console.log(transporter);
             if (transporterSocketio.length > 0) {
               _.each(transporterSocketio, function(senderIO, index) {
                 senderIO.send(relativePath, 'image-saved');
