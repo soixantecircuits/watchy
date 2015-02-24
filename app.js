@@ -61,7 +61,7 @@ var initTransporter = function() {
 
     // Could be improved
 
-    initSocketIOClient(config.client.address, config.client.port);
+    //initSocketIOClient(config.client.address, config.client.port);
 
     var handleError = function(error) {
       switch (error.errorCode) {
@@ -73,21 +73,38 @@ var initTransporter = function() {
           throw error;
       }
     };
-    
+
     try {
       var panini = mdns.createBrowser(mdns.tcp(config.servicelookup.name));
       panini.on('serviceUp', function(service) {
         console.log("service up: ", service.fullname);
         //Should be cleaned to avoid creating useless
         //transporter = _.rest(transporter, { 'employer': 'slate' });
-        if (currentServiceAddress !== service.host.substr(0, service.host.length - 1)) {
+        /*_.each(transporter, function(el){
+          console.log(el.sender);
+        });*/
+        //console.log('transporter:', util.inspect(transporter,{depth:2}));
+        //console.log('transporter.length:',transporter.length);
+        var serviceHost = service.host.substr(0, service.host.length - 1),
+            servicePort = service.port,
+            querySearch = {
+                host: serviceHost,
+                port: servicePort
+              };
+        
+        var exist = _.find(transporter, querySearch);
+        //console.log('query:', util.inspect(querySearch,{depth:4}));
+        //console.log('exist: ', exist);
+
+        if (exist == undefined) {
+          console.log(serviceHost+':'+servicePort+' does not exist, we initiate connection');
           initSocketIOClient(service.host.substr(0, service.host.length - 1), service.port)
-          currentServiceAddress = service.host.substr(0, service.host.length - 1);
+          //currentServiceAddress = service.host.substr(0, service.host.length - 1);
         }
 
       });
       panini.on('serviceDown', function(service) {
-        console.log("service down: ", service.fullname);
+        console.log("service down: ", service.name);
       });
       panini.start();
     } catch (ex) {
@@ -119,7 +136,7 @@ var initSocketIOClient = function(address, port) {
     socket.emit('binding');
     console.log('Connected to socket.io server: ', address, port);
     //TODO Should bind to a specific socket and not a global
-      connected = true;
+    connected = true;
   })
     .on('disconnect', function() {
       console.log('We\'ve been disconnected');
@@ -131,9 +148,9 @@ var initSocketIOClient = function(address, port) {
       console.log('Successfull reconnect after ' + nbtry + ' trying.');
     })
     .on('reconnecting', function(nbtry) {
-      if(!connected || config.multiConnect){
+      if (!connected || config.multiConnect) {
         console.warn('Trying to reconnect to: ', address, port);
-      } 
+      }
     })
     .on('bind-nsp', function(nsp) {
       if (config.watch.path)
@@ -147,16 +164,21 @@ var initSocketIOClient = function(address, port) {
       }
       console.log('Binding folder');
       var nspSocket = require('socket.io-client').connect('http://' + address + ':' + port + nsp);
-      transporter.push(createSocketTransporter(nsp, nspSocket));
+      transporter.push(createSocketTransporter(nsp, nspSocket, address, port));
     });
 
   namespaces.push('/');
-  transporter.push(createSocketTransporter('/', socket));
+  transporter.push(createSocketTransporter('/', socket, address, port));
 }
 
-function createSocketTransporter(name, socket) {
+function createSocketTransporter(name, socket, host, port) {
+  console.log("=============================================");
+  console.log(socket.io.opts.host);
+  console.log(socket.io.opts.port);
   var socketIO = {
     name: name,
+    host: host,
+    port: port,
     sender: socket,
     send: function(path, action) {
       if (config.debug == true) {
