@@ -8,6 +8,7 @@ var config = require('./config/config.json'),
   initialScanComplete = false,
   mdns = require('mdns'),
   mkdirp = require('mkdirp'),
+  ip = require('ip'),
   reconnected = false,
   reconnecting = false,
   currentServiceAddress = '',
@@ -117,6 +118,8 @@ var initSocketIOClient = function(address, port) {
   var socket = require('socket.io-client')('http://' + address + ':' + port);
   socket.on('connect', function() {
     socket.emit('binding');
+    host = ip.address();
+    console.log(host);
     console.log('Connected to socket.io server: ', address, port);
     //TODO Should bind to a specific socket and not a global
       connected = true;
