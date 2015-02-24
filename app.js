@@ -62,16 +62,17 @@ var initTransporter = function() {
 
     // Could be improved
 
-    //initSocketIOClient(config.client.address, config.client.port);
+    initSocketIOClient(config.client.address, config.client.port);
 
     var handleError = function(error) {
       switch (error.errorCode) {
         case mdns.kDNSServiceErr_Unknown:
           console.warn(error);
-          setTimeout(createAdvertisement, 5000);
+          // setTimeout(createAdvertisement, 5000);
           break;
         default:
-          throw error;
+          // throw error;
+          console.log(error);
       }
     };
 
@@ -218,7 +219,7 @@ var initWatcher = function() {
             var nsp = splitedPath[splitedPath.length - 2];
             nsp = nsp === config.watch.path.split('/').pop() ? '' : nsp;*/
 
-            nsp = path.replace(config.watch.path, "").split('/')[0];
+            var nsp = path.replace(config.watch.path, "").split('/')[0];
             //check if it is a file (should have an extension, should be improved to handle folder with "." dot)
             nsp = nsp.indexOf('.') >= 0 ? '' : nsp
 
