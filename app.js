@@ -202,11 +202,16 @@ var initWatcher = function() {
             var nsp = splitedPath[splitedPath.length - 2];
             nsp = nsp === config.watch.path.split('/').pop() ? '' : nsp;
 
+            nsp = path.replace(config.watch.path, "").split('/')[0];
+            //check if it is a file (should have an extension, should be improved to handle folder with "." dot)
+            nsp = nsp.indexOf('.') >= 0 ? '' : nsp
 
+            var queryNamespace = '/' + nsp;
+            console.log(queryNamespace);
             var transporterSocketio = _.where(transporter, {
-              name: '/' + nsp
+              name: queryNamespace
             });
-
+            console.log(transporter);
             if (transporterSocketio.length > 0) {
               _.each(transporterSocketio, function(senderIO, index) {
                 senderIO.send(relativePath, 'image-saved');
