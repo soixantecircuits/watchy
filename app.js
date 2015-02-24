@@ -8,6 +8,7 @@ var config = require('./config/config.json'),
   initialScanComplete = false,
   mdns = require('mdns'),
   mkdirp = require('mkdirp'),
+  ip = require('ip'),
   reconnected = false,
   reconnecting = false,
   currentServiceAddress = '',
@@ -75,16 +76,9 @@ var initTransporter = function() {
     };
 
     try {
-      var panini = mdns.createBrowser(mdns.tcp(config.servicelookup.name));
-      panini.on('serviceUp', function(service) {
+      var serviceBrowser = mdns.createBrowser(mdns.tcp(config.servicelookup.name));
+      serviceBrowser.on('serviceUp', function(service) {
         console.log("service up: ", service.fullname);
-        //Should be cleaned to avoid creating useless
-        //transporter = _.rest(transporter, { 'employer': 'slate' });
-        /*_.each(transporter, function(el){
-          console.log(el.sender);
-        });*/
-        //console.log('transporter:', util.inspect(transporter,{depth:2}));
-        //console.log('transporter.length:',transporter.length);
         var serviceHost = service.host.substr(0, service.host.length - 1),
             servicePort = service.port,
             querySearch = {
@@ -103,10 +97,10 @@ var initTransporter = function() {
         }
 
       });
-      panini.on('serviceDown', function(service) {
+      serviceBrowser.on('serviceDown', function(service) {
         console.log("service down: ", service.name);
       });
-      panini.start();
+      serviceBrowser.start();
     } catch (ex) {
       handleError(ex);
     }
@@ -134,6 +128,8 @@ var initSocketIOClient = function(address, port) {
   var socket = require('socket.io-client')('http://' + address + ':' + port);
   socket.on('connect', function() {
     socket.emit('binding');
+    host = ip.address();
+    console.log(host);
     console.log('Connected to socket.io server: ', address, port);
     //TODO Should bind to a specific socket and not a global
     connected = true;
@@ -218,15 +214,20 @@ var initWatcher = function() {
 
             console.log(relativePath);
 
-            var splitedPath = path.split('/');
+            /*var splitedPath = path.split('/');
             var nsp = splitedPath[splitedPath.length - 2];
-            nsp = nsp === config.watch.path.split('/').pop() ? '' : nsp;
+            nsp = nsp === config.watch.path.split('/').pop() ? '' : nsp;*/
 
+            nsp = path.replace(config.watch.path, "").split('/')[0];
+            //check if it is a file (should have an extension, should be improved to handle folder with "." dot)
+            nsp = nsp.indexOf('.') >= 0 ? '' : nsp
 
+            var queryNamespace = '/' + nsp;
+            console.log(queryNamespace);
             var transporterSocketio = _.where(transporter, {
-              name: '/' + nsp
+              name: queryNamespace
             });
-
+            console.log(transporter);
             if (transporterSocketio.length > 0) {
               _.each(transporterSocketio, function(senderIO, index) {
                 senderIO.send(relativePath, 'image-saved');
