@@ -61,9 +61,9 @@ var initTransporter = function() {
   } else if ((config.transport === 'socket.io' || config.transport === 'both') && config.state === 'client') {
 
     // Could be improved
-
-    initSocketIOClient(config.client.address, config.client.port);
-
+    if(config.client){
+      initSocketIOClient(config.client.address, config.client.port);  
+    }
     var handleError = function(error) {
       switch (error.errorCode) {
         case mdns.kDNSServiceErr_Unknown:
