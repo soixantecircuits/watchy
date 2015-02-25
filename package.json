@@ -22,7 +22,7 @@
     "url": "https://github.com/soixantecircuits/watchy/issues"
   },
   "dependencies": {
-    "chokidar": "^0.12.5",
+    "chokidar": "1.0.0-rc3",
     "ip": "^0.3.2",
     "lodash": "2.4.1",
     "mdns": "2.2.2",

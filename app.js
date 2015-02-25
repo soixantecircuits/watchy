@@ -5,7 +5,6 @@ var config = require('./config/config.json'),
   transporter = [],
   _ = require('lodash'),
   util = require('util'),
-  initialScanComplete = false,
   mdns = require('mdns'),
   mkdirp = require('mkdirp'),
   ip = require('ip'),
@@ -19,6 +18,16 @@ var config = require('./config/config.json'),
   connected = false,
   app;
 
+var findNameSpace = function(path) {
+  var directoryName = pathHelper.dirname(path);
+  var nsp = directoryName.replace(config.watch.path, '');
+  if (nsp.length > 0) {
+    nsp = (nsp[0] === '/') ? nsp : '/' + nsp;
+  } else {
+    nsp = '/';
+  }
+  return nsp;
+};
 var initTransporter = function() {
   if ((config.transport === 'socket.io' || config.transport === 'both') && config.state === 'server') {
     console.log('Init socket.io server mode...');
@@ -62,8 +71,8 @@ var initTransporter = function() {
   } else if ((config.transport === 'socket.io' || config.transport === 'both') && config.state === 'client') {
 
     // Could be improved
-    if(config.client){
-      initSocketIOClient(config.client.address, config.client.port);  
+    if (config.client) {
+      initSocketIOClient(config.client.address, config.client.port);
     }
     var handleError = function(error) {
       switch (error.errorCode) {
@@ -82,18 +91,18 @@ var initTransporter = function() {
       serviceBrowser.on('serviceUp', function(service) {
         console.log("service up: ", service.fullname);
         var serviceHost = service.host.substr(0, service.host.length - 1),
-            servicePort = service.port,
-            querySearch = {
-                host: serviceHost,
-                port: servicePort
-              };
-        
+          servicePort = service.port,
+          querySearch = {
+            host: serviceHost,
+            port: servicePort
+          };
+
         var exist = _.find(transporter, querySearch);
         //console.log('query:', util.inspect(querySearch,{depth:4}));
         //console.log('exist: ', exist);
 
         if (exist == undefined) {
-          console.log(serviceHost+':'+servicePort+' does not exist, we initiate connection');
+          console.log(serviceHost + ':' + servicePort + ' does not exist, we initiate connection');
           initSocketIOClient(service.host.substr(0, service.host.length - 1), service.port)
           //currentServiceAddress = service.host.substr(0, service.host.length - 1);
         }
@@ -195,13 +204,14 @@ var initWatcher = function() {
 
   var watcher = chokidar.watch(config.watch.path, {
     ignored: /[\/\\]\./,
+    ignoreInitial: config.ignoreInitial,
     persistent: true
   });
 
   watcher
     .on('add', function(path) {
 
-      if (initialScanComplete) {
+      if (path.indexOf('!sync') < 0) {
         //Add a slight delay to avoid error on get when too fast request are made.
         //See bug https://github.com/joyent/node/issues/4863
         //Data is not ready but someone is trying to access to ....
@@ -219,20 +229,7 @@ var initWatcher = function() {
             /*var splitedPath = path.split('/');
             var nsp = splitedPath[splitedPath.length - 2];
             nsp = nsp === config.watch.path.split('/').pop() ? '' : nsp;*/
-            var directoryName = pathHelper.dirname(path);
-            var nsp = directoryName.replace(config.watch.path, '');
-            
-
-
-            //var nsp = path.replace(config.watch.path, "").split(pathHelper.sep)[0];
-            //console.log('nsp:' , nsp);
-            //check if it is a file (should have an extension, should be improved to handle folder with "." dot)
-            //nsp = nsp.indexOf('.') >= 0 ? '' : nsp
-            if(nsp.length > 0){
-              nsp = (nsp[0] === '/') ? nsp : '/' + nsp;  
-            } else {
-              nsp = '/';
-            }
+            var nsp = findNameSpace(path);
             var queryNamespace = nsp;
             //console.log(queryNamespace);
             var transporterSocketio = _.where(transporter, {
@@ -263,7 +260,7 @@ var initWatcher = function() {
           }
         }, 500);
       } else {
-        console.log('Chokidar - File', path, 'was here... not sending');
+        console.log('Chokidar - File', path, 'should be ignored');
       }
     })
     .on('addDir', function(path) {
@@ -276,14 +273,15 @@ var initWatcher = function() {
       }
     })
     .on('unlink', function(path) {
-      if (initialScanComplete) {
+      if (path.indexOf('!sync') < 0) {
         try {
           var relativePath = path.replace(config.watch.path, 'http://' + host + ":" + config.port);
           console.log(relativePath);
 
-          var splitedPath = path.split('/');
+          /*var splitedPath = path.split('/');
           var nsp = splitedPath[splitedPath.length - 2];
-          nsp = nsp === config.watch.path.split('/').pop() ? '' : nsp;
+          nsp = nsp === config.watch.path.split('/').pop() ? '' : nsp;*/
+          var nsp = findNameSpace(path);
 
           var transporterSocketio = _.where(transporter, {
             name: '/' + nsp
@@ -311,7 +309,7 @@ var initWatcher = function() {
           console.log(err);
         }
       } else {
-        console.log('File', path, 'was here');
+        console.log('File', path, 'should be ignored');
       }
       console.log('File', path, 'has been removed');
     })
@@ -323,7 +321,6 @@ var initWatcher = function() {
     })
     .on('ready', function() {
       console.info('Chokidar - Initial scan complete. Ready for changes.');
-      initialScanComplete = true;
     })
     .on('raw', function(event, path, details) {
       //console.info('Raw event info:', event, path, details)

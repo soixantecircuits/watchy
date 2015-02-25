@@ -11,6 +11,7 @@
     "address": "localhost",
     "port": 8011
   },
+  "ignoreInitial": true,
   "servicelookup": {
     "name": "panini"
   },
