@@ -13,6 +13,7 @@ var config = require('./config/config.json'),
   reconnecting = false,
   currentServiceAddress = '',
   fs = require('fs'),
+  pathHelper = require('path'),
   namespaces = [],
   host = '',
   connected = false,
@@ -218,17 +219,26 @@ var initWatcher = function() {
             /*var splitedPath = path.split('/');
             var nsp = splitedPath[splitedPath.length - 2];
             nsp = nsp === config.watch.path.split('/').pop() ? '' : nsp;*/
+            var directoryName = pathHelper.dirname(path);
+            var nsp = directoryName.replace(config.watch.path, '');
+            
 
-            var nsp = path.replace(config.watch.path, "").split('/')[0];
+
+            //var nsp = path.replace(config.watch.path, "").split(pathHelper.sep)[0];
+            //console.log('nsp:' , nsp);
             //check if it is a file (should have an extension, should be improved to handle folder with "." dot)
-            nsp = nsp.indexOf('.') >= 0 ? '' : nsp
-
-            var queryNamespace = '/' + nsp;
-            console.log(queryNamespace);
+            //nsp = nsp.indexOf('.') >= 0 ? '' : nsp
+            if(nsp.length > 0){
+              nsp = (nsp[0] === '/') ? nsp : '/' + nsp;  
+            } else {
+              nsp = '/';
+            }
+            var queryNamespace = nsp;
+            //console.log(queryNamespace);
             var transporterSocketio = _.where(transporter, {
               name: queryNamespace
             });
-            console.log(transporter);
+            //console.log(transporter);
             if (transporterSocketio.length > 0) {
               _.each(transporterSocketio, function(senderIO, index) {
                 senderIO.send(relativePath, 'image-saved');
