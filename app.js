@@ -18,7 +18,7 @@ var config = require('./config/config.json'),
   connected = false,
   app;
 
-process.title = 'watchy - ' + config.servicelookup.name;
+process.title = 'watchy-' + config.servicelookup.name;
 
 var findNameSpace = function(path) {
   var directoryName = pathHelper.dirname(path);
@@ -30,6 +30,7 @@ var findNameSpace = function(path) {
   }
   return nsp;
 };
+
 var initTransporter = function() {
   if ((config.transport === 'socket.io' || config.transport === 'both') && config.state === 'server') {
     console.log('Init socket.io server mode...');
@@ -328,23 +329,7 @@ var initWatcher = function() {
 }
 
 var initStatiqueServer = function() {
-
-  /*var staticServer = require('node-static'),
-    fileServer = new staticServer.Server(config.watch.path, {
-      cache: 7200,
-      serverInfo: "watchy/" + host
-    });*/
-
-  /*app = require('http').createServer(function(request, response) {
-    request.addListener('end', function() {
-      fileServer.serve(request, response).addListener('error', function(err) {
-        util.error("Error serving " + request.url + " - " + err.message);
-        response.end();
-      });
-    }).resume();
-  });*/
   app = express();
-  
   var options = {
     dotfiles: 'ignore',
     etag: false,
