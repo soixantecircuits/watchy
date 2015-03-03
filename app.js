@@ -91,7 +91,7 @@ var initTransporter = function() {
     try {
       var serviceBrowser = mdns.createBrowser(mdns.tcp(config.servicelookup.name));
       serviceBrowser.on('serviceUp', function(service) {
-        console.log("service up: ", service.fullname);
+        console.log(clc.blue('Service up: ') + service.fullname);
         var serviceHost = service.host.substr(0, service.host.length - 1),
           servicePort = service.port,
           querySearch = {
@@ -142,7 +142,7 @@ var initSocketIOClient = function(address, port) {
   socket.on('connect', function() {
     socket.emit('binding');
     host = ip.address();
-    console.log(host);
+    //console.log(host);
     console.log('Connected to socket.io server: ', address, port);
     //TODO Should bind to a specific socket and not a global
     connected = true;
@@ -182,8 +182,6 @@ var initSocketIOClient = function(address, port) {
 
 function createSocketTransporter(name, socket, host, port) {
   console.log("=============================================");
-  console.log(socket.io.opts.host);
-  console.log(socket.io.opts.port);
   var socketIO = {
     name: name,
     host: host,
@@ -262,14 +260,14 @@ var initWatcher = function() {
           }
         }, 500);
       } else {
-        console.log('Chokidar - File', path, 'should be ignored');
+        console.log('Chokidar: File', path, 'should be ignored');
       }
     })
     .on('addDir', function(path) {
-      console.log('Chokidar - Directory', path, 'has been added');
+      console.log('Chokidar: Directory', path, 'has been added');
     })
     .on('change', function(path, stats) {
-      console.log('Chokidar - File', path, 'has been changed');
+      console.log('Chokidar: File', path, 'has been changed');
       if (stats) {
         console.log(stats);
       }
@@ -316,13 +314,13 @@ var initWatcher = function() {
       console.log('File', path, 'has been removed');
     })
     .on('unlinkDir', function(path) {
-      console.log('Chokidar - Directory', path, 'has been removed');
+      console.log('Chokidar: Directory', path, 'has been removed');
     })
     .on('error', function(error) {
-      console.error('Chokidar - Error happened', error);
+      console.error('Chokidar: Error happened', error);
     })
     .on('ready', function() {
-      console.info('Chokidar - Initial scan complete. Ready for changes.');
+      console.info('Chokidar: Initial scan complete. Ready for changes.');
     })
     .on('raw', function(event, path, details) {
       //console.info('Raw event info:', event, path, details)
@@ -356,19 +354,20 @@ var initStatiqueServer = function() {
     redirect: false,
     setHeaders: function(res, path, stat) {
       res.set('x-timestamp', Date.now())
+      res.set('', Date.now())
     }
   };
   app.use(express.static(config.watch.path, options));
 }
 
-console.log("Initializing...");
+console.log(clc.blue("Initializing..."));
 
 if (fs.existsSync(config.watch.path)) {
   initStatiqueServer();
   initTransporter();
   //TODO add some ready event to tell the watcher to init.
   initWatcher();
-  console.log("...Initialized");
+  console.log(clc.green("...Initialized"));
   // Output
   var os = require("os");
   host = os.hostname();
@@ -384,19 +383,17 @@ if (fs.existsSync(config.watch.path)) {
   }
   require('dns').resolve('www.google.com', function(err) {
     if (err) {
-      console.log('No internet connection, serving from localhost');
+      console.log(clc.red('No internet connection, serving from localhost'));
       host = '127.0.0.1';
-    } else {
-      console.log('All fine, we have access to internet');
     }
   });
-  console.log("Listening on: http://" +ip.address()+':'+config.port);
   console.log("Watching: "+config.watch.path);
+  console.log(clc.blue('Listening on: ') + clc.green('http://' +ip.address()+':'+config.port));
   app.listen(config.port)
     .on('error', function(err) {
       console.log(err);
       process.exit(1);
     });
 } else {
-  console.log('Sorry, we can\'t watch something that does not exist: ', config.watch.path);
+  console.log(clc.red('Sorry, we can\'t watch something that does not exist: '+ config.watch.path));
 }
