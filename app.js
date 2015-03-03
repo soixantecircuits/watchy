@@ -388,6 +388,7 @@ if (fs.existsSync(config.watch.path)) {
     }
   });
   console.log("Listening on: " + config.port);
+  console.log("Watching: "+config.watch.path);
   app.listen(config.port)
     .on('error', function(err) {
       console.log(err);
