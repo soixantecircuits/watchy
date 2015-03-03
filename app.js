@@ -2,21 +2,23 @@
 //TODO : add namespace for client mode !
 
 var config = require('./config/config.json'),
-  transporter = [],
   _ = require('lodash'),
   util = require('util'),
   mdns = require('mdns'),
   mkdirp = require('mkdirp'),
+  clc = require('cli-color'),
+  express = require('express'),
   ip = require('ip'),
-  reconnected = false,
-  reconnecting = false,
-  currentServiceAddress = '',
   fs = require('fs'),
   pathHelper = require('path'),
+  currentServiceAddress = '',
+  transporter = [],
   namespaces = [],
   host = '',
   connected = false,
   app;
+
+process.title = 'watchy - ' + config.servicelookup.name;
 
 var findNameSpace = function(path) {
   var directoryName = pathHelper.dirname(path);
@@ -329,33 +331,34 @@ var initWatcher = function() {
 
 var initStatiqueServer = function() {
 
-  var staticServer = require('node-static'),
+  /*var staticServer = require('node-static'),
     fileServer = new staticServer.Server(config.watch.path, {
       cache: 7200,
       serverInfo: "watchy/" + host
-    });
+    });*/
 
-  app = require('http').createServer(function(request, response) {
+  /*app = require('http').createServer(function(request, response) {
     request.addListener('end', function() {
       fileServer.serve(request, response).addListener('error', function(err) {
         util.error("Error serving " + request.url + " - " + err.message);
         response.end();
       });
     }).resume();
-  });
-
-  /* Does not provide meaning full message when error occur
-  var Statique = require("statique");
-
-  // Create *Le Statique* server
-  var server = new Statique({
-    root: config.watch.path
-  }).setRoutes({
-    "/": "/html/index.html"
-  });
-
-  // Create server
-  app = require('http').createServer(server.serve);*/
+  });*/
+  app = express();
+  
+  var options = {
+    dotfiles: 'ignore',
+    etag: false,
+    extensions: ['htm', 'html'],
+    index: false,
+    maxAge: '1d',
+    redirect: false,
+    setHeaders: function(res, path, stat) {
+      res.set('x-timestamp', Date.now())
+    }
+  };
+  app.use(express.static(config.watch.path, options));
 }
 
 console.log("Initializing...");
@@ -387,7 +390,7 @@ if (fs.existsSync(config.watch.path)) {
       console.log('All fine, we have access to internet');
     }
   });
-  console.log("Listening on: " + config.port);
+  console.log("Listening on: http://" +ip.address()+':'+config.port);
   console.log("Watching: "+config.watch.path);
   app.listen(config.port)
     .on('error', function(err) {
