@@ -101,10 +101,11 @@ var initTransporter = function() {
           };
 
         var exist = _.find(transporter, querySearch);
-        //console.log('query:', util.inspect(querySearch,{depth:4}));
-        //console.log('exist: ', exist);
+        /*console.log('query:', util.inspect(querySearch,{depth:4}));
+        console.log('exist: ', exist);
+        console.log('transporter:', transporter);*/
 
-        if (exist == undefined) {
+        if (exist === undefined) {
           console.log(serviceHost + ':' + servicePort + ' does not exist, we initiate connection');
           initSocketIOClient(service.host.substr(0, service.host.length - 1), service.port)
           //currentServiceAddress = service.host.substr(0, service.host.length - 1);
@@ -171,10 +172,10 @@ var initSocketIOClient = function(address, port) {
             }
           });
           namespaces.push(nsp);
+          console.log('Binding folder');
+          var nspSocket = require('socket.io-client').connect('http://' + address + ':' + port + nsp);
+          transporter.push(createSocketTransporter(nsp, nspSocket, address, port));
       }
-      console.log('Binding folder');
-      var nspSocket = require('socket.io-client').connect('http://' + address + ':' + port + nsp);
-      transporter.push(createSocketTransporter(nsp, nspSocket, address, port));
     });
 
   namespaces.push('/');
