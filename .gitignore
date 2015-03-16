@@ -4,3 +4,4 @@ node_modules/
 **.conf
 config/config.json
 npm-debug.log
+.idea
