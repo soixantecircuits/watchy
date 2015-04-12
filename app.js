@@ -12,6 +12,7 @@ var config = require('./config/config.json'),
   fs = require('fs'),
   pathHelper = require('path'),
   currentServiceAddress = '',
+  serverHttp,
   transporter = [],
   namespaces = [],
   host = '',
@@ -34,7 +35,7 @@ var findNameSpace = function(path) {
 var initTransporter = function() {
   if ((config.transport === 'socket.io' || config.transport === 'both') && config.state === 'server') {
     console.log('Init socket.io server mode...');
-    var io = require('socket.io')(app);
+    var io = require('socket.io')(serverHttp);
     if (config.state === 'server') {
       var ad = mdns.createAdvertisement(mdns.tcp('watchy'), config.port);
       ad.start();
@@ -241,7 +242,15 @@ var initWatcher = function() {
             if (transporterSocketio.length > 0) {
               _.each(transporterSocketio, function(senderIO, index) {
                 senderIO.send(relativePath, 'image-saved');
+                //other app should migrate to new-file
+                senderIO.send(relativePath, 'new-file');
               })
+            } else if (config.state === 'server') {
+              if(transporter.length > 0){
+                _.each(transporter, function(senderIO, index) {
+                  senderIO.send(relativePath, 'new-file');
+                });
+              }
             } else {
               console.log('Sorry we can not send using socket.io, no transport available, check your network\nor your namspace...');
             }
@@ -344,6 +353,7 @@ var initStatiqueServer = function() {
     }
   };
   app.use(express.static(config.watch.path, options));
+  serverHttp = require('http').Server(app);
 }
 
 console.log(clc.blue("Initializing..."));
@@ -373,9 +383,9 @@ if (fs.existsSync(config.watch.path)) {
       host = '127.0.0.1';
     }
   });
-  console.log("Watching: "+config.watch.path);
+  console.log('Watching: ' + config.watch.path);
   console.log(clc.blue('Listening on: ') + clc.green('http://' +ip.address()+':'+config.port));
-  app.listen(config.port)
+  serverHttp.listen(config.port)
     .on('error', function(err) {
       console.log(err);
       process.exit(1);
