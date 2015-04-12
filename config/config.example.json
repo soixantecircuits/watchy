@@ -15,8 +15,8 @@
   "servicelookup": {
     "name": "panini"
   },
-  "multiConnect": false,
   "port": 8080,
+  "multiConnect": false,
   "transport": "socket.io",
   "debug": true
 }
