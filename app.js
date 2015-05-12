@@ -17,6 +17,7 @@ var config = require('./config/config.json'),
   namespaces = [],
   host = '',
   connected = false,
+  lastFile = '',
   app;
 
 process.title = 'watchy-' + config.servicelookup.name;
@@ -213,6 +214,9 @@ var initWatcher = function() {
 
   watcher
     .on('add', function(path) {
+      if(lastFile.length && lastFile == path){
+        return;
+      }
 
       if (path.indexOf('!sync') < 0) {
         //Add a slight delay to avoid error on get when too fast request are made.
@@ -241,9 +245,10 @@ var initWatcher = function() {
             //console.log(transporter);
             if (transporterSocketio.length > 0) {
               _.each(transporterSocketio, function(senderIO, index) {
-                senderIO.send(relativePath, 'image-saved');
+                // senderIO.send(relativePath, 'image-saved');
                 //other app should migrate to new-file
                 senderIO.send(relativePath, 'new-file');
+                lastFile = path;
               })
             } else if (config.state === 'server') {
               if(transporter.length > 0){
