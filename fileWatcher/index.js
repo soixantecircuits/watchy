@@ -17,7 +17,7 @@ var findNameSpace = function(path) {
   return nsp;
 };
 
-var initWatcher = function(module) {
+var initWatcher = function() {
   var chokidar = require('chokidar');
 
   var watcher = chokidar.watch(config.watch.path, {
@@ -43,7 +43,7 @@ var initWatcher = function(module) {
             console.log('Watching: ' + config.watch.path);
             var os = require("os");
             var watchPath = (config.watch.path.charAt(config.watch.path.length - 1) !== '/') ? config.watch.path : config.watch.path.substring(0, config.watch.path.length - 1);
-            var relativePath = path.replace(watchPath, 'http://' + module.host + ":" + config.port);
+            var relativePath = path.replace(watchPath, 'http://' + module.exports.host + ":" + config.port);
 
             console.log(relativePath);
 
@@ -53,7 +53,7 @@ var initWatcher = function(module) {
             var nsp = findNameSpace(path);
             var queryNamespace = nsp;
             //console.log(queryNamespace);
-            var transporterSocketio = _.where(module.transporter, {
+            var transporterSocketio = _.where(module.exports.transporter, {
               name: queryNamespace
             });
             //console.log(transporter);
@@ -65,8 +65,8 @@ var initWatcher = function(module) {
                 lastFile = path;
               })
             } else if (config.state === 'server') {
-              if(module.transporter.length > 0){
-                _.each(module.transporter, function(senderIO, index) {
+              if(module.exports.transporter.length > 0){
+                _.each(module.exports.transporter, function(senderIO, index) {
                   senderIO.send(relativePath, 'new-file');
                 });
               }
@@ -93,9 +93,6 @@ var initWatcher = function(module) {
         console.log('Chokidar: File', path, 'should be ignored');
       }
     })
-    .on('addDir', function(path) {
-      console.log('Chokidar: Directory', path, 'has been added');
-    })
     .on('change', function(path, stats) {
       console.log('Chokidar: File', path, 'has been changed');
       if (stats) {
@@ -105,12 +102,12 @@ var initWatcher = function(module) {
     .on('unlink', function(path) {
       if (path.indexOf('!sync') < 0) {
         try {
-          var relativePath = path.replace(config.watch.path, 'http://' + module.host + ":" + config.port);
+          var relativePath = path.replace(config.watch.path, 'http://' + module.exports.host + ":" + config.port);
           console.log(relativePath);
 
           var nsp = findNameSpace(path);
 
-          var transporterSocketio = _.where(module.transporter, {
+          var transporterSocketio = _.where(module.exports.transporter, {
             name: '/' + nsp
           });
           if (transporterSocketio.length > 0) {
@@ -122,7 +119,7 @@ var initWatcher = function(module) {
             console.log('Sorry we can not send using OSC, no transport available');
           }
           if (config.transport === 'osc' || config.transport === 'both') {
-            var transporterOsc = _.where(module.transporter, {
+            var transporterOsc = _.where(module.exports.transporter, {
               name: 'osc'
             });
             if (transporterOsc.length > 0) {
@@ -140,6 +137,9 @@ var initWatcher = function(module) {
       }
       console.log('File', path, 'has been removed');
     })
+    .on('addDir', function(path) {
+      console.log('Chokidar: Directory', path, 'has been added');
+    })
     .on('unlinkDir', function(path) {
       console.log('Chokidar: Directory', path, 'has been removed');
     })
@@ -150,7 +150,7 @@ var initWatcher = function(module) {
       console.info('Chokidar: Initial scan complete. Ready for changes.');
     })
     .on('raw', function(event, path, details) {
-      //console.info('Raw event info:', event, path, details)
+      console.info('Raw event info:', event, path, details)
     })
 }
 
@@ -158,6 +158,6 @@ module.exports = {
   init: function(host, transporter){
     this.host = host;
     this.transporter = transporter;
-    initWatcher(this);
+    initWatcher();
   }
 }
