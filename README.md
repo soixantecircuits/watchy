@@ -20,6 +20,7 @@ $ npm install
 $ cp config/config.example.json config/config.json
 $ vim config/config.json
 ```
+Be careful with the servicelookup name
 - Launch it:
 ``` bash
 $ npm start
