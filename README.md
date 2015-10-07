@@ -24,6 +24,7 @@ $ vim config/config.json
 ``` bash
 $ npm start
 ```
+Important note: The device must be connected to a network which can access the internet
 
 ## Troubleshooting
 
