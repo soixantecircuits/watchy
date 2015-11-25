@@ -13,7 +13,7 @@
   },
   "ignoreInitial": true,
   "servicelookup": {
-    "name": "panini"
+    "name": "socialite"
   },
   "port": 8080,
   "multiConnect": false,
