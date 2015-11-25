@@ -6,9 +6,9 @@ var config = require('../config/config.json'),
     mkdirp = require('mkdirp'),
     ip = require('ip');
 
-
 // Local variables
 var namespaces = [];
+var connected = false;
 
 var createSocketTransporter = function(name, socket, host, port) {
   console.log("=============================================");

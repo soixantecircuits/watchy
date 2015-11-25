@@ -16,7 +16,6 @@ var currentServiceAddress = '',
   serverHttp,
   transporter = [],
   host = '',
-  connected = false,
   app;
 
 process.title = 'watchy-' + config.servicelookup.name;
