@@ -4,6 +4,8 @@ A basic app that can watch and send files modification over Socket.IO
 
 ## Installation
 
+Watchy is not compatible with nodejs over `v0.12.x`. In case you need it, use [nvm](https://github.com/creationix/nvm) and `nvm use 0.12.7`.
+
 - Install system dependencies:
 ```bash
 $ sudo add-apt-repository ppa:chris-lea/node.js && sudo apt-get update
