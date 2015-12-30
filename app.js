@@ -1,7 +1,7 @@
 'use strict'
 
 var config = require('./config/config.json')
-var   _ = require('lodash')
+var _ = require('lodash')
 var util = require('util')
 var mdns = require('mdns')
 var mkdirp = require('mkdirp')
