@@ -21,7 +21,7 @@ $ git clone git@github.com:soixantecircuits/watchy.git && cd watchy
 $ npm install
 ```
 
-- Copy the example config et fill it with your own:
+- Copy the example config and fill it with your own:
 
 ```bash
 $ cp config/config.example.json config/config.json
