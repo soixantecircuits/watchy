@@ -1,3 +1,16 @@
+'use strict'
+
+var findNameSpace = function (path) {
+  var directoryName = pathHelper.dirname(path)
+  var nsp = directoryName.replace(config.watch.path, '')
+  if (nsp.length > 0) {
+    nsp = (nsp[0] === '/') ? nsp : '/' + nsp
+  } else {
+    nsp = '/'
+  }
+  return nsp
+}
+
 const initWatcher = function (config, transporter) {
   var chokidar = require('chokidar')
   var watcher = chokidar.watch(config.watch.path, {
