@@ -11,6 +11,7 @@ var config = require('./config/config.json'),
   ip = require('ip'),
   fs = require('fs'),
   pathHelper = require('path'),
+  mediainfo = require('mediainfo-q'),
   currentServiceAddress = '',
   serverHttp,
   transporter = [],
@@ -202,27 +203,35 @@ function createSocketTransporter(name, socket, host, port) {
   };
   return socketIO;
 }
-
-var initWatcher = function() {
-  var chokidar = require('chokidar');
-
-  var watcher = chokidar.watch(config.watch.path, {
-    ignored: /[\/\\]\./,
-    ignoreInitial: config.ignoreInitial,
-    persistent: true
-  });
-
-  watcher
-    .on('add', function(path) {
-      if(lastFile.length && lastFile == path){
-        return;
+var checkIntegrity = function(path, cb){
+  
+/*
+  mediainfo(path, 
+    function(err, data){
+      if(err) {
+       console.log(err) 
+      } else{
+        console.log(data)
+        if(data[0].duration.length > 0){
+          cb()  
+        }
+        
       }
-
-      if (path.indexOf('!sync') < 0) {
-        //Add a slight delay to avoid error on get when too fast request are made.
-        //See bug https://github.com/joyent/node/issues/4863
-        //Data is not ready but someone is trying to access to ....
-
+     
+    })
+  
+*/
+  mediainfo(path)
+    .then(function (res) {
+      console.log(res)
+        if(res[0].duration && res[0].duration.length > 0){
+          cb()  
+        }
+    }).catch(function (err) {
+      console.error(err)
+    })
+}
+var send = function(path){
         setTimeout(function() {
           try {
             console.log(path);
@@ -275,9 +284,33 @@ var initWatcher = function() {
             console.log(err);
           }
         }, 500);
+
+}
+
+var initWatcher = function() {
+  var chokidar = require('chokidar');
+
+  var watcher = chokidar.watch(config.watch.path, {
+    ignored: /[\/\\]\./,
+    ignoreInitial: config.ignoreInitial,
+    persistent: true
+  });
+
+  watcher
+    .on('add', function(path) {
+      if(lastFile.length && lastFile == path){
+        return;
+      }
+
+      if (path.indexOf('!sync') < 0 && path.indexOf('mp4') < 0) {
+        //Add a slight delay to avoid error on get when too fast request are made.
+        //See bug https://github.com/joyent/node/issues/4863
+        //Data is not ready but someone is trying to access to ....
+        send(path)
       } else {
         console.log('Chokidar: File', path, 'should be ignored');
       }
+
     })
     .on('addDir', function(path) {
       console.log('Chokidar: Directory', path, 'has been added');
@@ -286,6 +319,12 @@ var initWatcher = function() {
       console.log('Chokidar: File', path, 'has been changed');
       if (stats) {
         console.log(stats);
+        if (path.indexOf('mp4')){
+		checkIntegrity(path, function(){
+		  console.log('send')
+		  send(path)
+		})
+        }
       }
     })
     .on('unlink', function(path) {

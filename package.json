@@ -23,15 +23,16 @@
   },
   "dependencies": {
     "chokidar": "1.0.0-rc3",
+    "cli-color": "0.3.2",
+    "express": "4.2.0",
     "ip": "0.3.2",
     "lodash": "2.4.1",
     "mdns": "2.2.2",
+    "mediainfo": "jamesmorgan/node-mediainfo-q",
     "mkdirp": "0.5.0",
     "node-osc": "0.2.1",
     "socket.io": "1.2.1",
-    "socket.io-client": "1.2.1",
-    "express":"4.2.0",
-    "cli-color":"0.3.2"
+    "socket.io-client": "1.2.1"
   },
   "devDependencies": {
     "expect.js": "~0.2.0",
