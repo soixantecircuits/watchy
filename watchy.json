@@ -1,0 +1,6 @@
+{
+	"name": "watchy",
+	"script": "/home/mina/sources/js/soixante/watchy/app.js",
+	"exec_interpreter": "/home/mina/.nvm/v0.10.36/bin/node"
+
+}
