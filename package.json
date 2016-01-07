@@ -28,7 +28,7 @@
     "ip": "0.3.2",
     "lodash": "2.4.1",
     "mdns": "2.2.2",
-    "mediainfo": "jamesmorgan/node-mediainfo-q",
+    "mediainfo": "soixantecircuits/node-mediainfo-q.git#0.10.36",
     "mkdirp": "0.5.0",
     "node-osc": "0.2.1",
     "socket.io": "1.2.1",
