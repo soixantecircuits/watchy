@@ -223,7 +223,7 @@ var checkIntegrity = function(path, cb){
 */
   mediainfo(path)
     .then(function (res) {
-      console.log(res)
+      //console.log(res)
         if(res[0].duration && res[0].duration.length > 0){
           cb()  
         }
@@ -234,13 +234,13 @@ var checkIntegrity = function(path, cb){
 var send = function(path){
         setTimeout(function() {
           try {
-            console.log(path);
-            console.log(config.watch.path);
+            //console.log(path);
+            //console.log(config.watch.path);
             var os = require("os");
             var watchPath = (config.watch.path.charAt(config.watch.path.length - 1) !== '/') ? config.watch.path : config.watch.path.substring(0, config.watch.path.length - 1);
             var relativePath = path.replace(watchPath, 'http://' + host + ":" + config.port);
 
-            console.log(relativePath);
+            console.log('send ' + relativePath);
 
             /*var splitedPath = path.split('/');
             var nsp = splitedPath[splitedPath.length - 2];
@@ -307,23 +307,27 @@ var initWatcher = function() {
         //See bug https://github.com/joyent/node/issues/4863
         //Data is not ready but someone is trying to access to ....
         send(path)
+      } else if ( path.indexOf('mp4') ) {
+        checkIntegrity(path, function(){
+          send(path)
+        })
+        console.log('Chokidar: mp4 ignored at creation : ', path);
       } else {
-        console.log('Chokidar: File', path, 'should be ignored');
+        console.log('Chokidar: File ignored: ', path);
       }
 
     })
     .on('addDir', function(path) {
-      console.log('Chokidar: Directory', path, 'has been added');
+      console.log('Chokidar: Directory added: ', path);
     })
     .on('change', function(path, stats) {
-      console.log('Chokidar: File', path, 'has been changed');
+      console.log('Chokidar: File changed: ', path);
       if (stats) {
-        console.log(stats);
+        // console.log(stats);
         if (path.indexOf('mp4')){
-		checkIntegrity(path, function(){
-		  console.log('send')
-		  send(path)
-		})
+          checkIntegrity(path, function(){
+            send(path)
+          })
         }
       }
     })
