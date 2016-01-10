@@ -19,7 +19,8 @@ var config = require('./config/config.json'),
   host = '',
   connected = false,
   lastFile = '',
-  app;
+  app,
+  checkIntegrityTimeout
 
 process.title = 'watchy-' + config.servicelookup.name;
 
@@ -204,7 +205,19 @@ function createSocketTransporter(name, socket, host, port) {
   return socketIO;
 }
 var checkIntegrity = function(path, cb){
-  
+    clearTimeout(checkIntegrityTimeout)
+    checkIntegrityTimeout = setTimeout(function () {
+      mediainfo(path)
+        .then(function (res) {
+          console.log(res)
+            if(res[0].duration && res[0].duration.length > 0){
+              cb()  
+            }
+        }).catch(function (err) {
+          console.error(err)
+        })
+    }, 1000)
+ 
 /*
   mediainfo(path, 
     function(err, data){
@@ -221,15 +234,6 @@ var checkIntegrity = function(path, cb){
     })
   
 */
-  mediainfo(path)
-    .then(function (res) {
-      //console.log(res)
-        if(res[0].duration && res[0].duration.length > 0){
-          cb()  
-        }
-    }).catch(function (err) {
-      console.error(err)
-    })
 }
 var send = function(path){
         setTimeout(function() {
@@ -311,7 +315,6 @@ var initWatcher = function() {
         checkIntegrity(path, function(){
           send(path)
         })
-        console.log('Chokidar: mp4 ignored at creation : ', path);
       } else {
         console.log('Chokidar: File ignored: ', path);
       }
