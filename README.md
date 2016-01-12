@@ -10,7 +10,7 @@ Watchy is not compatible with nodejs over `v0.12.x`. In case you need it, use [n
 ```bash
 $ sudo add-apt-repository ppa:chris-lea/node.js && sudo apt-get update
 $ sudo apt-get install nodejs
-$ sudo apt-get install avahi-daemon avahi-discover libnss-mdns libavahi-compat-libdnssd-dev curl build-essential
+$ sudo apt-get install avahi-daemon avahi-discover libnss-mdns libavahi-compat-libdnssd-dev curl build-essential mediainfo
 ```
 - Clone repo and install packages:
 ```bash
