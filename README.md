@@ -2,6 +2,21 @@
 
 A basic app that can watch and send files modification over Socket.IO
 
+## Simulation mode
+
+This is the simulation mode. You need to setup the original folder where you are storing your photo
+and the destination folder where the horde.js will watch. By default the horde watch a `.example`
+folder and create a watchy for each numbered folder that exist in this main folder.
+Thus you will end up with one watchy process for each of your folder.
+
+To play :
+
+`node horde.js` 
+`node simulator.js`
+
+Be sure to check that you do not have any images in you watched folder before launching the
+horde has watchy will ignore existing file and only emit for new ones. 
+
 ## Installation
 
 Watchy is not compatible with nodejs over `v0.12.x`. In case you need it, use [nvm](https://github.com/creationix/nvm) and `nvm use 0.12.7`.
