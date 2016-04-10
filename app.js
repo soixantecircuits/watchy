@@ -20,12 +20,25 @@ var config = require('./config/config.json'),
   connected = false,
   lastFile = '',
   app;
+  
+var program = require('commander');
+
+program
+  .version('0.0.1')
+  .option('-d, --dir [value]', 'select dir')
+  .option('-p, --port <n>', 'select port')
+  .parse(process.argv)
 
 process.title = 'watchy-' + config.servicelookup.name;
-
+var watchingPath = program.dir || config.watch.path
+var publicPort = publicPort
+  if (program.port){
+    publicPort = program.port
+  } 
+  
 var findNameSpace = function(path) {
   var directoryName = pathHelper.dirname(path);
-  var nsp = directoryName.replace(config.watch.path, '');
+  var nsp = directoryName.replace(watchingPath, '');
   if (nsp.length > 0) {
     nsp = (nsp[0] === '/') ? nsp : '/' + nsp;
   } else {
@@ -39,7 +52,7 @@ var initTransporter = function() {
     console.log('Init socket.io server mode...');
     var io = require('socket.io')(serverHttp);
     if (config.state === 'server') {
-      var ad = mdns.createAdvertisement(mdns.tcp('watchy'), config.port);
+      var ad = mdns.createAdvertisement(mdns.tcp('watchy'), publicPort);
       ad.start();
     }
     //var io = require('socket.io').listen(config.socketIO.port);
@@ -167,9 +180,9 @@ var initSocketIOClient = function(address, port) {
       }
     })
     .on('bind-nsp', function(nsp) {
-      if (config.watch.path)
+      if (watchingPath)
         if (_.contains(namespaces, nsp) === false) {
-          mkdirp(config.watch.path + nsp, function(err) {
+          mkdirp(watchingPath + nsp, function(err) {
             if (err) {
               console.log('mkdirp: ' + err);
             }
@@ -204,28 +217,28 @@ function createSocketTransporter(name, socket, host, port) {
   return socketIO;
 }
 var checkIntegrity = function(path, cb){
-  
+
 /*
-  mediainfo(path, 
+  mediainfo(path,
     function(err, data){
       if(err) {
-       console.log(err) 
+       console.log(err)
       } else{
         console.log(data)
         if(data[0].duration.length > 0){
-          cb()  
+          cb()
         }
-        
+
       }
-     
+
     })
-  
+
 */
   mediainfo(path)
     .then(function (res) {
       console.log(res)
         if(res[0].duration && res[0].duration.length > 0){
-          cb()  
+          cb()
         }
     }).catch(function (err) {
       console.error(err)
@@ -235,10 +248,10 @@ var send = function(path){
         setTimeout(function() {
           try {
             console.log(path);
-            console.log(config.watch.path);
+            console.log(watchingPath);
             var os = require("os");
-            var watchPath = (config.watch.path.charAt(config.watch.path.length - 1) !== '/') ? config.watch.path : config.watch.path.substring(0, config.watch.path.length - 1);
-            var relativePath = path.replace(watchPath, 'http://' + host + ":" + config.port);
+            var watchPath = (watchingPath.charAt(watchingPath.length - 1) !== '/') ? watchingPath : watchingPath.substring(0, watchingPath.length - 1);
+            var relativePath = path.replace(watchPath, 'http://' + host + ":" + publicPort);
 
             console.log(relativePath);
 
@@ -256,13 +269,13 @@ var send = function(path){
               _.each(transporterSocketio, function(senderIO, index) {
                 // senderIO.send(relativePath, 'image-saved');
                 //other app should migrate to new-file
-                senderIO.send(relativePath, 'new-file');
+                senderIO.send(relativePath, 'image-saved');
                 lastFile = path;
               })
             } else if (config.state === 'server') {
               if(transporter.length > 0){
                 _.each(transporter, function(senderIO, index) {
-                  senderIO.send(relativePath, 'new-file');
+                  senderIO.send(relativePath, 'image-saved');
                 });
               }
             } else {
@@ -290,7 +303,7 @@ var send = function(path){
 var initWatcher = function() {
   var chokidar = require('chokidar');
 
-  var watcher = chokidar.watch(config.watch.path, {
+  var watcher = chokidar.watch(watchingPath, {
     ignored: /[\/\\]\./,
     ignoreInitial: config.ignoreInitial,
     persistent: true
@@ -302,7 +315,7 @@ var initWatcher = function() {
         return;
       }
 
-      if (path.indexOf('!sync') < 0 && path.indexOf('mp4') < 0) {
+      if (path.indexOf('!sync') < 0) {
         //Add a slight delay to avoid error on get when too fast request are made.
         //See bug https://github.com/joyent/node/issues/4863
         //Data is not ready but someone is trying to access to ....
@@ -330,7 +343,7 @@ var initWatcher = function() {
     .on('unlink', function(path) {
       if (path.indexOf('!sync') < 0) {
         try {
-          var relativePath = path.replace(config.watch.path, 'http://' + host + ":" + config.port);
+          var relativePath = path.replace(watchingPath, 'http://' + host + ":" + publicPort);
           console.log(relativePath);
 
           /*var splitedPath = path.split('/');
@@ -396,13 +409,13 @@ var initStatiqueServer = function() {
       res.set('', Date.now())
     }
   };
-  app.use(express.static(config.watch.path, options));
+  app.use(express.static(watchingPath, options));
   serverHttp = require('http').Server(app);
 }
 
 console.log(clc.blue("Initializing..."));
 
-if (fs.existsSync(config.watch.path)) {
+if (fs.existsSync(watchingPath)) {
   initStatiqueServer();
   initTransporter();
   //TODO add some ready event to tell the watcher to init.
@@ -427,13 +440,16 @@ if (fs.existsSync(config.watch.path)) {
       host = '127.0.0.1';
     }
   });
-  console.log('Watching: ' + config.watch.path);
-  console.log(clc.blue('Listening on: ') + clc.green('http://' +ip.address()+':'+config.port));
-  serverHttp.listen(config.port)
+  console.log('Watching: ' + watchingPath);
+  
+  
+  console.log(clc.blue('Listening on: ') + clc.green('http://' +ip.address()+':' + publicPort));
+  serverHttp.listen(publicPort)
     .on('error', function(err) {
       console.log(err);
       process.exit(1);
     });
+   
 } else {
-  console.log(clc.red('Sorry, we can\'t watch something that does not exist: '+ config.watch.path));
+  console.log(clc.red('Sorry, we can\'t watch something that does not exist: '+ watchingPath));
 }

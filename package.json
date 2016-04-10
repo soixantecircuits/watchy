@@ -17,22 +17,26 @@
     "Socket.IO"
   ],
   "author": "gabrielstuff <gabriel@soixantecircuits.fr>",
-  "license": "BSD-3-Clause",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/soixantecircuits/watchy/issues"
   },
   "dependencies": {
     "chokidar": "1.0.0-rc3",
     "cli-color": "0.3.2",
+    "commander": "^2.9.0",
     "express": "4.2.0",
+    "fs-extra": "^0.26.7",
     "ip": "0.3.2",
     "lodash": "2.4.1",
-    "mdns": "2.2.2",
+    "mdns": "2.3.1",
     "mediainfo": "jamesmorgan/node-mediainfo-q",
     "mkdirp": "0.5.0",
     "node-osc": "0.2.1",
     "socket.io": "1.2.1",
-    "socket.io-client": "1.2.1"
+    "socket.io-client": "1.2.1",
+    "walk": "^2.3.9",
+    "walkdir": "0.0.11"
   },
   "devDependencies": {
     "expect.js": "~0.2.0",

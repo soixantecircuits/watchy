@@ -5,3 +5,5 @@ node_modules/
 config/config.json
 npm-debug.log
 .idea
+example
+calibration_example
